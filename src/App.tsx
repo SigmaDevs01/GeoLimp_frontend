@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LandingPage } from './pages/LandingPage';
+import { MapPage } from './pages/MapPage';
 import { Dashboard } from './pages/admin/Dashboard';
 import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
 import { ProtectedRoute } from './shared/components/ProtectedRoute';
 import { GlobalModal } from './shared/components/GlobalModal';
 
@@ -9,8 +10,9 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<MapPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         
         {/* Rotas Protegidas */}
         <Route element={<ProtectedRoute />}>

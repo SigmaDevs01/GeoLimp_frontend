@@ -1,0 +1,70 @@
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Plus, UserCog } from 'lucide-react';
+
+export function ManagersPanel() {
+  const [managers, setManagers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchManagers = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get('/users');
+        const filtered = res.data.filter((u: any) => u.role === 'GESTOR' || u.role === 'ROOT');
+        setManagers(filtered);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchManagers();
+  }, []);
+
+  return (
+    <div className="flex flex-col h-full animate-in fade-in slide-in-from-left-4 duration-500">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Gestores do Sistema</h2>
+          <p className="text-foreground/60 text-sm mt-1">Administradores e usuários com privilégios</p>
+        </div>
+        <Button className="rounded-full shadow-lg"><Plus size={18} className="mr-2" /> Novo Gestor</Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 flex-1 overflow-auto custom-scrollbar pr-2 pb-4 content-start">
+        {loading ? (
+          <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+        ) : managers.length === 0 ? (
+          <div className="text-center py-10 text-foreground/50">Nenhum gestor encontrado.</div>
+        ) : (
+          managers.map(manager => (
+            <div key={manager.id} className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 flex items-center justify-between group">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
+                  {manager.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground flex items-center gap-2">
+                    {manager.name || 'Sem nome'}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-foreground/60">{manager.email}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${manager.role === 'ROOT' ? 'bg-red-500/20 text-red-600 dark:text-red-400' : 'bg-blue-500/20 text-blue-600 dark:text-blue-400'}`}>
+                      {manager.role}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">Editar</Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
