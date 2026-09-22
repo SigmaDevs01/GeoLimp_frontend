@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import Cookies from 'js-cookie';
+import { api } from '@/lib/api';
 
 interface User {
   id: string;
@@ -9,41 +10,43 @@ interface User {
 }
 
 interface AuthState {
-  token: string | null;
   user: User | null;
-  login: (token: string, user: User) => void;
+  login: (user: User) => void;
   logout: () => void;
   init: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
   user: null,
   
-  login: (token, user) => {
-    Cookies.set('token', token, { expires: 1 });
+  login: (user) => {
     Cookies.set('user', JSON.stringify(user), { expires: 1 });
     Cookies.set('userRole', user.role, { expires: 1 });
-    set({ token, user });
+    set({ user });
   },
   
-  logout: () => {
-    Cookies.remove('token');
+  logout: async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (e) {
+      console.error(e);
+    }
     Cookies.remove('user');
     Cookies.remove('userRole');
-    set({ token: null, user: null });
+    set({ user: null });
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   },
 
   init: () => {
-    const token = Cookies.get('token');
     const userStr = Cookies.get('user');
-    if (token && userStr) {
+    if (userStr) {
       try {
-        const user = JSON.stringify(userStr);
-        set({ token, user: JSON.parse(userStr) });
+        set({ user: JSON.parse(userStr) });
       } catch (e) {
-        Cookies.remove('token');
         Cookies.remove('user');
+        Cookies.remove('userRole');
       }
     }
   }

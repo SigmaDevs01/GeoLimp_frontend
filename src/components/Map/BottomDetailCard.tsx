@@ -1,6 +1,18 @@
-import { X, Navigation, Calendar, Info } from 'lucide-react';
+import { X, Navigation, Calendar, Image as ImageIcon, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useState, useRef, useEffect } from 'react';
+import { api } from '@/lib/api';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 interface BottomDetailCardProps {
   complaint: any;
@@ -9,70 +21,232 @@ interface BottomDetailCardProps {
 
 export function BottomDetailCard({ complaint, onClose }: BottomDetailCardProps) {
   const { user } = useAuthStore();
+  const [showImage, setShowImage] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   if (!complaint) return null;
 
+  const handleViewOS = () => {
+    if (!complaint.serviceOrderProtocol) return;
+    window.dispatchEvent(new CustomEvent('open-os-tab'));
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('open-os', { detail: { protocol: complaint.serviceOrderProtocol } }));
+    }, 50);
+  };
+  const handleViewDetails = () => {
+    if (complaint.type === 'OS') {
+      window.dispatchEvent(new CustomEvent('open-os-tab'));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open-os', { detail: { protocol: complaint.protocol } }));
+      }, 50);
+    } else {
+      window.dispatchEvent(new CustomEvent('open-complaints-tab'));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open-complaint', { detail: { protocol: complaint.protocol } }));
+      }, 50);
+    }
+    onClose();
+  };
+
+  const handleEdit = () => {
+    setShowMenu(false);
+    if (complaint.type === 'OS') {
+      if (complaint.complaintId) {
+        alert('Não é possível editar uma OS gerada automaticamente. Você deve editar a denúncia referida.');
+        return;
+      }
+      onClose();
+      window.dispatchEvent(new CustomEvent('open-edit-os', { detail: { os: complaint } }));
+    } else {
+      onClose();
+      window.dispatchEvent(new CustomEvent('open-edit-complaint', { detail: { complaint } }));
+    }
+  };
+
+  const handleDeleteClick = () => {
+    setShowMenu(false);
+    setShowDeleteAlert(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      if (complaint.type === 'OS') {
+        await api.delete(`/service-orders/${complaint.id}`);
+      } else {
+        await api.delete(`/complaints/${complaint.id}`);
+      }
+      onClose();
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao excluir item');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteAlert(false);
+    }
+  };
+
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl pointer-events-none px-4">
-      <div className="glass-panel p-6 rounded-3xl pointer-events-auto animate-in slide-in-from-bottom-8 fade-in duration-500 shadow-2xl relative">
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all"
-        >
-          <X size={20} />
-        </button>
+    <>
+      <div className="absolute bottom-4 md:bottom-4 md:right-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 z-50 w-[calc(100%-2rem)] md:w-[340px] pointer-events-none">
+        <div className="p-4 rounded-2xl pointer-events-auto animate-in slide-in-from-bottom-8 fade-in duration-500 shadow-2xl relative bg-background/85 backdrop-blur-md border border-border">
+          <button 
+            onClick={onClose}
+            className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all"
+          >
+            <X size={16} />
+          </button>
 
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Column - Image (if any) or Icon */}
-          <div className="w-full md:w-1/3 aspect-video md:aspect-square bg-black/5 dark:bg-white/5 rounded-2xl flex items-center justify-center border border-foreground/10 overflow-hidden">
-            {complaint.photoUrl ? (
-              <img src={complaint.photoUrl} alt="Denúncia" className="w-full h-full object-cover" />
-            ) : (
-              <Info className="w-12 h-12 text-foreground/20" />
-            )}
-          </div>
-
-          {/* Right Column - Details */}
-          <div className="flex-1 flex flex-col justify-between py-2">
+          <div className="flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-xl font-bold text-foreground capitalize">
+              <div className="flex flex-col gap-1 mb-3 pr-6">
+                <h3 className="text-lg font-bold text-foreground capitalize leading-tight line-clamp-1">
                   {complaint.category}
                 </h3>
-                <span className={`text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider ${
-                  complaint.status === 'resolvido' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
-                  complaint.status === 'em_andamento' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
-                  'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
-                }`}>
-                  {complaint.status}
-                </span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 text-white shadow-sm ${complaint.type === 'OS' ? 'bg-blue-500' : 'bg-orange-500'}`}>
+                    {complaint.type === 'OS' ? 'OS' : 'Denúncia'}
+                  </span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider shrink-0 ${
+                    complaint.status?.toLowerCase() === 'resolvido' || complaint.status?.toLowerCase() === 'concluida' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
+                    complaint.status?.toLowerCase() === 'em_andamento' || complaint.status?.toLowerCase() === 'em andamento' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
+                    'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                  }`}>
+                    {complaint.status?.replace('_', ' ')}
+                  </span>
+                </div>
               </div>
               
-              <div className="flex items-start gap-2 text-foreground/70 mb-4 mt-4">
-                <Navigation size={16} className="mt-1 flex-shrink-0 text-primary" />
-                <p className="text-sm font-medium">{complaint.address || `${complaint.latitude}, ${complaint.longitude}`}</p>
+              <div className="flex items-start gap-2 text-foreground/70">
+                <Navigation size={14} className="mt-0.5 flex-shrink-0 text-primary" />
+                <p className="text-xs font-medium leading-tight">{complaint.address || `${complaint.latitude}, ${complaint.longitude}`}</p>
               </div>
 
-              <p className="text-foreground/80 text-sm mb-4 leading-relaxed line-clamp-3">
-                {complaint.description}
-              </p>
+              {complaint.description && (
+                <p className="text-foreground/80 text-xs mt-3 leading-relaxed line-clamp-3">
+                  {complaint.description}
+                </p>
+              )}
             </div>
 
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-foreground/10">
-              <div className="flex items-center gap-2 text-foreground/50 text-xs font-medium">
-                <Calendar size={14} />
-                <span>{complaint.createdAt ? new Date(complaint.createdAt).toLocaleDateString('pt-BR') : 'Data não informada'}</span>
+            <div className="flex flex-col gap-3 mt-4 pt-3 border-t border-foreground/10">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  {complaint.createdAt && (
+                    <div className="flex items-center gap-1.5 text-foreground/50 text-[10px] font-medium">
+                      <Calendar size={12} />
+                      <span>{new Date(complaint.createdAt).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  )}
+                  {complaint.serviceOrderProtocol && (
+                    <div className="flex items-center gap-1.5 text-[10px] font-medium">
+                      <span className="text-foreground/50 uppercase tracking-wider font-semibold">OS:</span>
+                      <span className="font-mono text-primary font-bold">{complaint.serviceOrderProtocol}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-2 items-center flex-wrap justify-end">
+                  {complaint.photos && complaint.photos.length > 0 && (
+                    <Button variant="outline" size="sm" className="h-7 px-3 rounded-full text-[10px] font-semibold shrink-0" onClick={() => setShowImage(true)}>
+                      <ImageIcon size={12} className="mr-1.5" />
+                      Foto
+                    </Button>
+                  )}
+                  
+                  {user?.role !== 'cidadao' && (
+                    <>
+                      <Button onClick={handleViewDetails} className="h-7 px-3 rounded-full text-[10px] font-semibold bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground shrink-0">
+                        Detalhes
+                      </Button>
+                      
+                      {complaint.serviceOrderProtocol && complaint.type !== 'OS' && (
+                        <Button onClick={handleViewOS} className="h-7 px-3 rounded-full text-[10px] font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
+                          Ver OS
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  
+                  {(user?.id === complaint.userId || user?.role !== 'cidadao') && (
+                    <div className="relative shrink-0" ref={menuRef}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 w-7 p-0 rounded-full text-foreground/50 hover:text-foreground"
+                        onClick={() => setShowMenu(!showMenu)}
+                        disabled={isDeleting}
+                      >
+                        <MoreVertical size={16} />
+                      </Button>
+                      
+                      {showMenu && (
+                        <div className="absolute bottom-full right-0 mb-2 w-36 rounded-xl bg-background border border-border shadow-lg overflow-hidden py-1 z-[60] animate-in fade-in zoom-in-95 duration-200">
+                          <button 
+                            onClick={handleEdit}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-foreground hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Edit2 size={14} /> Editar
+                          </button>
+                          <button 
+                            onClick={handleDeleteClick}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 flex items-center gap-2"
+                          >
+                            <Trash2 size={14} /> Excluir
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              {user?.role !== 'cidadao' && (
-                <Button className="h-9 px-6 rounded-full text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
-                  Criar Ordem de Serviço
-                </Button>
-              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {showImage && complaint.photos && complaint.photos.length > 0 && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 pointer-events-auto" onClick={() => setShowImage(false)}>
+          <img src={complaint.photos[0]} alt="Denúncia" className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" />
+          <button className="absolute top-6 right-6 p-3 bg-black/50 text-white rounded-full hover:bg-black/80 transition-colors">
+            <X size={24} />
+          </button>
+        </div>
+      )}
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent className="z-[110]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir? Essa ação não pode ser desfeita. {complaint.type === 'OS' && complaint.complaintId && 'A denúncia associada a esta OS também será excluída.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Excluindo...' : 'Sim, excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

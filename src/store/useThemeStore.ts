@@ -17,7 +17,7 @@ export const useThemeStore = create<ThemeState>()(
       setTheme: (theme) => set({ theme }),
     }),
     {
-      name: 'geolimp-theme',
+      name: 'geolimp-theme-storage',
     }
   )
 );

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Map as MapIcon, Package, Users, Truck, Settings, LogOut, Search, Clock } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { OSMap } from '@/features/map/components/OSMap';
 import {
   Select,
@@ -43,7 +44,7 @@ export function Dashboard() {
           <Button variant="ghost" size="icon" className="rounded-full w-10 h-10" onClick={toggleTheme}>
             <Clock className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 text-destructive">
+          <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 text-destructive" onClick={() => useAuthStore.getState().logout()}>
             <LogOut className="w-5 h-5" />
           </Button>
         </div>

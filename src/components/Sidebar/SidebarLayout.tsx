@@ -31,6 +31,22 @@ export function SidebarLayout({
   const isExpanded = user.role !== 'cidadao' && activeTab !== 'map';
   const panelWidthClass = isExpanded ? 'w-[80vw] max-w-[900px]' : 'w-80';
 
+  useEffect(() => {
+    const handleOpenOsTab = () => setActiveTab('os');
+    const handleOpenComplaintsTab = () => setActiveTab('complaints');
+    const handleOpenMapTab = () => setActiveTab('map');
+    
+    window.addEventListener('open-os-tab', handleOpenOsTab);
+    window.addEventListener('open-complaints-tab', handleOpenComplaintsTab);
+    window.addEventListener('open-map-tab', handleOpenMapTab);
+    
+    return () => {
+      window.removeEventListener('open-os-tab', handleOpenOsTab);
+      window.removeEventListener('open-complaints-tab', handleOpenComplaintsTab);
+      window.removeEventListener('open-map-tab', handleOpenMapTab);
+    };
+  }, []);
+
   return (
     <div className="absolute top-4 left-4 bottom-4 z-50 flex h-[calc(100vh-2rem)] pointer-events-none">
       
@@ -129,16 +145,16 @@ export function SidebarLayout({
                       <div 
                         key={comp.id}
                         onClick={() => onComplaintSelect(comp)}
-                        className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all hover:-translate-y-1 group"
+                        className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all group"
                       >
                         <div className="flex justify-between items-start mb-2">
                           <span className="text-xs font-semibold text-primary uppercase tracking-wider truncate mr-2">{comp.category}</span>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
-                            comp.status === 'resolvido' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
-                            comp.status === 'em_andamento' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
+                            (comp.status === 'RESOLVIDA' || comp.status === 'resolvido') ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
+                            (comp.status === 'EM_ANDAMENTO' || comp.status === 'em_andamento') ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
                             'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
                           }`}>
-                            {comp.status}
+                            {comp.status?.replace('_', ' ')}
                           </span>
                         </div>
                         <p className="text-sm text-foreground/90 font-medium line-clamp-1">{comp.address}</p>
@@ -159,7 +175,7 @@ export function SidebarLayout({
           // Admin Panels
           <div className="flex-1 h-full w-full">
             {activeTab === 'os' && <ServiceOrdersPanel />}
-            {activeTab === 'complaints' && <ComplaintsAdminPanel />}
+            {activeTab === 'complaints' && <ComplaintsAdminPanel onComplaintSelect={onComplaintSelect} />}
             {activeTab === 'teams' && <TeamsPanel />}
             {activeTab === 'managers' && <ManagersPanel />}
           </div>

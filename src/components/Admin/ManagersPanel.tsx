@@ -1,27 +1,54 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Plus, UserCog } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
+import { ManagerFormModal } from './ManagerFormModal';
 
 export function ManagersPanel() {
   const [managers, setManagers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+  const [managerToEdit, setManagerToEdit] = useState<any>(null);
+
+  const fetchManagers = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/users');
+      const filtered = res.data.filter((u: any) => u.role === 'GESTOR' || u.role === 'ROOT');
+      setManagers(filtered);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchManagers = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get('/users');
-        const filtered = res.data.filter((u: any) => u.role === 'GESTOR' || u.role === 'ROOT');
-        setManagers(filtered);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchManagers();
   }, []);
+
+  const handleOpenNew = () => {
+    setManagerToEdit(null);
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (manager: any) => {
+    setManagerToEdit(manager);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (confirm(`Tem certeza que deseja excluir o gestor ${name}?`)) {
+      try {
+        await api.delete(`/users/${id}`);
+        fetchManagers();
+      } catch (e) {
+        console.error("Erro ao excluir", e);
+        alert("Erro ao excluir gestor.");
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-left-4 duration-500">
@@ -30,7 +57,7 @@ export function ManagersPanel() {
           <h2 className="text-2xl font-bold text-foreground">Gestores do Sistema</h2>
           <p className="text-foreground/60 text-sm mt-1">Administradores e usuários com privilégios</p>
         </div>
-        <Button className="rounded-full shadow-lg"><Plus size={18} className="mr-2" /> Novo Gestor</Button>
+        <Button onClick={handleOpenNew} className="rounded-full shadow-lg"><Plus size={18} className="mr-2" /> Novo Gestor</Button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 flex-1 overflow-auto custom-scrollbar pr-2 pb-4 content-start">
@@ -59,12 +86,39 @@ export function ManagersPanel() {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">Editar</Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleOpenEdit(manager)}
+                  className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  Editar
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleDelete(manager.id, manager.name)}
+                  className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  title="Excluir"
+                >
+                  <Trash2 size={16} />
+                </Button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {showModal && (
+        <ManagerFormModal 
+          initialData={managerToEdit}
+          onClose={() => setShowModal(false)}
+          onSuccess={() => {
+            setShowModal(false);
+            fetchManagers();
+          }}
+        />
+      )}
     </div>
   );
 }

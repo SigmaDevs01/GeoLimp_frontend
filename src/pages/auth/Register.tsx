@@ -4,17 +4,20 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/shared/components/Logo';
 import { api } from '@/lib/api';
-import { Loader2 } from 'lucide-react';
+import { useThemeStore } from '@/store/useThemeStore';
+import { Loader2, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 
 export function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useThemeStore();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +40,17 @@ export function Register() {
       {/* Background Decorative Pattern */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
 
+      <div className="absolute top-4 right-4 z-50">
+        <button 
+          onClick={toggleTheme} 
+          className="p-3 rounded-full bg-background/50 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm"
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+      </div>
+
       <div className="mb-8 z-10 flex flex-col items-center gap-2">
-        <Logo className="w-16 h-16 text-foreground" />
-        <h1 className="text-2xl font-bold tracking-wide">GeoLimp</h1>
+        <Logo showName className="w-auto h-20 text-foreground" />
       </div>
       
       <div className="glass-panel w-full max-w-md p-8 rounded-2xl z-10 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -90,15 +101,25 @@ export function Register() {
 
           <div className="space-y-1">
             <label htmlFor="password" className="text-sm font-medium text-foreground/90">Senha</label>
-            <Input 
-              id="password" 
-              type="password" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground"
-              required
-            />
+            <div className="relative">
+              <Input 
+                id="password" 
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground pr-10"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/50 hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {error && <p className="text-destructive text-sm text-center font-medium animate-in fade-in">{error}</p>}

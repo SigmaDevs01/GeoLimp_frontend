@@ -14,12 +14,12 @@ export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
   useEffect(() => {
     if (!map) return;
 
-    // Type assertion because L.heatLayer is added to L by leaflet.heat
     const heatLayer = (L as any).heatLayer(points, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 17,
-      gradient: { 0.4: 'cyan', 0.65: 'yellow', 1: 'red' },
+      radius: 35,
+      blur: 25,
+      maxZoom: 20,
+      max: 3, // Needs 3 complaints overlapping to become completely red
+      gradient: { 0.2: '#0055ff', 0.4: '#00ffff', 0.6: '#00ff00', 0.8: '#ffff00', 1.0: '#ff0000' },
       ...options
     });
 

@@ -25,6 +25,8 @@ interface ComplaintFormModalProps {
   selectedLocation: [number, number] | null;
   selectedAddress: string;
   onSuccess: () => void;
+  hidden?: boolean;
+  initialData?: any;
 }
 
 export function ComplaintFormModal({ 
@@ -32,14 +34,18 @@ export function ComplaintFormModal({
   onRequestMapSelection, 
   selectedLocation, 
   selectedAddress,
-  onSuccess 
+  onSuccess,
+  hidden,
+  initialData
 }: ComplaintFormModalProps) {
   
-  const [category, setCategory] = useState('');
-  const [description, setDescription] = useState('');
-  const [address, setAddress] = useState(selectedAddress);
+  const [category, setCategory] = useState(initialData?.category || '');
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [address, setAddress] = useState(initialData?.address || selectedAddress);
   
-  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [photoBase64, setPhotoBase64] = useState<string | null>(
+    initialData?.photos && initialData.photos.length > 0 ? initialData.photos[0] : null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -124,23 +130,31 @@ export function ComplaintFormModal({
 
       if (photoBase64) {
         payload.photos = [photoBase64];
+      } else {
+        payload.photos = [];
       }
 
-      await api.post('/complaints', payload);
+      if (initialData?.id) {
+        await api.patch(`/complaints/${initialData.id}`, payload);
+      } else {
+        await api.post('/complaints', payload);
+      }
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao registrar denúncia.');
+      setError(err.response?.data?.message || `Erro ao ${initialData?.id ? 'atualizar' : 'registrar'} denúncia.`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 ${hidden ? 'hidden' : ''}`}>
       <div className="bg-background w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 fade-in duration-200 relative border border-border">
         
         <div className="flex justify-between items-center p-6 border-b border-border bg-muted/30">
-          <h2 className="text-2xl font-bold text-foreground">Nova Denúncia</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            {initialData ? 'Editar Denúncia' : 'Nova Denúncia'}
+          </h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all">
             <X size={20} />
           </button>
@@ -248,7 +262,7 @@ export function ComplaintFormModal({
           </Button>
           <Button type="submit" form="complaintForm" className="rounded-xl px-8 h-12 text-base font-semibold shadow-xl" disabled={loading}>
             {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : <Upload className="w-5 h-5 mr-2" />}
-            Enviar Denúncia
+            {initialData ? 'Salvar Alterações' : 'Enviar Denúncia'}
           </Button>
         </div>
 
