@@ -1,0 +1,22 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:3000
+    container_name: geolimp-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+
+  backend:
+    build:
+      context: ../GeoLimp_Backend
+      dockerfile: Dockerfile
+    container_name: geolimp-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../GeoLimp_Backend/.env

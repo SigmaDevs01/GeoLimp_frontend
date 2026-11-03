@@ -6,7 +6,8 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'root' | 'gestor_operacional' | 'cidadao';
+  phone?: string | null;
+  role: 'root' | 'gestor' | 'gestor_operacional' | 'cidadao';
 }
 
 interface AuthState {

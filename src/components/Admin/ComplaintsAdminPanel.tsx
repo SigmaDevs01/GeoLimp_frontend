@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, MapPin, X, ChevronDown, Map, Image as ImageIcon } from 'lucide-react';
@@ -84,6 +85,9 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
       const found = list.find((c: any) => c.protocol === protocol);
       if (found) {
         setSelectedComplaint(found);
+        setTimeout(() => {
+          document.getElementById(`complaint-card-${found.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
       }
     };
     
@@ -127,25 +131,27 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
         <Button variant="outline" className="rounded-xl border-foreground/10"><Filter size={18} className="mr-2" /> Status</Button>
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar pr-2 space-y-3">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 space-y-3">
         {loading ? (
           <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
         ) : complaints.length === 0 ? (
           <div className="text-center py-10 text-foreground/50">Nenhuma denúncia encontrada no sistema.</div>
         ) : (
           complaints.map(comp => (
-            <div key={comp.id} className="rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 transition-all flex flex-col overflow-hidden">
+            <div id={`complaint-card-${comp.id}`} key={comp.id} className="rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 transition-all flex flex-col overflow-hidden">
               <div onClick={() => toggleDetails(comp.id)} className="p-5 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                 <div className="flex-1 mr-4">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="font-bold text-foreground">{comp.protocol}</span>
                     <span className="text-xs font-semibold text-primary uppercase tracking-wider">{comp.category}</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                      comp.status === 'RESOLVIDA' || comp.status === 'resolvido' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
-                      comp.status === 'EM_ANDAMENTO' || comp.status === 'em_andamento' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
+                      comp.status?.toUpperCase() === 'RESOLVIDA' || comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
+                      comp.status?.toUpperCase() === 'EM_ANDAMENTO' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
                       'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
                     }`}>
-                      {comp.status?.replace('_', ' ')}
+                      {(comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA'
+                        ? 'RESOLVIDA'
+                        : comp.status)?.replace('_', ' ')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-foreground/60 text-sm mt-1">
@@ -217,13 +223,14 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
         )}
       </div>
 
-      {showImage && selectedComplaint?.photos && selectedComplaint.photos.length > 0 && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 pointer-events-auto" onClick={() => setShowImage(false)}>
+      {showImage && selectedComplaint?.photos && selectedComplaint.photos.length > 0 && createPortal(
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 p-4 animate-in fade-in zoom-in-95 pointer-events-auto" onClick={() => setShowImage(false)}>
           <img src={selectedComplaint.photos[0]} alt="Denúncia" className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" />
           <button className="absolute top-6 right-6 p-3 bg-black/50 text-white rounded-full hover:bg-black/80 transition-colors">
             <X size={24} />
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

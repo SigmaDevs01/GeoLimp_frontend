@@ -16,8 +16,8 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     const { socket } = get();
     if (socket?.connected) return;
 
-    // Use localhost:3000 as backend URL
-    const backendUrl = 'http://localhost:3000';
+    // Use VITE_API_URL or fallback to localhost:3000
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
     
     const newSocket = io(`${backendUrl}/dashboard`, {
       withCredentials: true,

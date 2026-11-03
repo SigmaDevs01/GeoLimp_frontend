@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, X, User, Edit, Trash2 } from 'lucide-react';
@@ -138,7 +139,7 @@ export function TeamsPanel() {
         <Button onClick={() => setIsCreatingTeam(true)} className="rounded-full shadow-lg"><Plus size={18} className="mr-2" /> Nova Equipe</Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-auto custom-scrollbar pr-2 pb-4 content-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-4 content-start">
         {loading ? (
           <div className="col-span-full flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
         ) : teams.length === 0 ? (
@@ -171,9 +172,9 @@ export function TeamsPanel() {
       </div>
 
       {/* Modal Nova Equipe */}
-      {isCreatingTeam && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl p-6">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10">
+      {isCreatingTeam && createPortal(
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
+          <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Criar Nova Equipe</h3>
               <button onClick={() => setIsCreatingTeam(false)} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
@@ -190,13 +191,14 @@ export function TeamsPanel() {
               <Button onClick={handleCreateTeam} className="w-full">Salvar Equipe</Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Editar Equipe */}
-      {editingTeam && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl p-6">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10">
+      {editingTeam && createPortal(
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
+          <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Editar Equipe</h3>
               <button onClick={() => setEditingTeam(null)} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
@@ -213,13 +215,14 @@ export function TeamsPanel() {
               <Button onClick={handleUpdateTeam} className="w-full">Atualizar Equipe</Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Ver Membros */}
-      {selectedTeamId && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl p-6">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-lg shadow-2xl border border-foreground/10 flex flex-col max-h-[90%]">
+      {selectedTeamId && createPortal(
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
+          <div className="bg-background p-6 rounded-2xl w-full max-w-lg shadow-2xl border border-foreground/10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold flex items-center gap-2"><Users size={20} className="text-primary" /> Membros da Equipe</h3>
               <button onClick={() => { setSelectedTeamId(null); setIsCreatingMember(false); setEditingMember(null); }} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
@@ -253,7 +256,7 @@ export function TeamsPanel() {
               <Button onClick={() => setIsCreatingMember(true)} className="w-full mb-4" variant="outline"><Plus size={16} className="mr-2" /> Adicionar Profissional</Button>
             )}
 
-            <div className="flex-1 overflow-auto custom-scrollbar space-y-2">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 space-y-2">
               {loadingMembers ? (
                 <div className="flex justify-center py-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div></div>
               ) : members.length === 0 ? (
@@ -277,7 +280,8 @@ export function TeamsPanel() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

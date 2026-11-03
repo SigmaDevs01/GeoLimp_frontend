@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
 import { useOSStore } from '@/store/useOSStore';
+import { VALID_CATEGORIES } from '@/shared/constants/categories';
 
 interface OSFormModalProps {
   initialData?: any;
@@ -55,37 +58,44 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
     window.dispatchEvent(new CustomEvent('request-os-location'));
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-6 pointer-events-auto">
+  const hasLegacyCategory = Boolean(
+    formData.category && !VALID_CATEGORIES.includes(formData.category as any)
+  );
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-6 pointer-events-auto">
       <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">{initialData ? 'Editar OS Avulsa' : 'Criar OS Avulsa'}</h3>
+          <h3 className="text-xl font-bold">{initialData?.id ? 'Editar OS Avulsa' : 'Criar OS Avulsa'}</h3>
           <button onClick={onClose} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
         </div>
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">Categoria</label>
-            <select 
-              className="w-full h-10 px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border-foreground/10 border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            <Select
               value={formData.category}
-              onChange={e => setFormData({...formData, category: e.target.value})}
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
             >
-              <option value="">-- Selecione uma Categoria --</option>
-              <option value="Varrição">Varrição</option>
-              <option value="Coleta de Lixo">Coleta de Lixo</option>
-              <option value="Limpeza de Bueiros">Limpeza de Bueiros</option>
-              <option value="Poda de Árvore">Poda de Árvore</option>
-              <option value="Roçagem">Roçagem</option>
-              <option value="Iluminação Pública">Iluminação Pública</option>
-              <option value="Buraco na via / rua">Buraco na via / rua</option>
-              <option value="Outros">Outros</option>
-            </select>
+              <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-black/5 dark:bg-white/5 border-foreground/10 text-foreground text-sm">
+                <SelectValue placeholder="Selecione uma categoria..." />
+              </SelectTrigger>
+              <SelectContent className="z-[150] max-h-80 rounded-xl custom-scrollbar">
+                {hasLegacyCategory && (
+                  <SelectItem value={formData.category}>{formData.category}</SelectItem>
+                )}
+                {VALID_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Endereço</label>
             <div className="flex gap-2">
               <Input className="flex-1" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="Local da ocorrência" />
-              {!initialData && (
+              {!initialData?.id && (
                 <Button variant="outline" className="px-3 rounded-xl border-foreground/10" onClick={handleRequestMapLocation}>
                   <MapPin size={18} />
                 </Button>
@@ -101,6 +111,7 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,8 +62,8 @@ export function ManagerFormModal({ initialData, onClose, onSuccess }: ManagerFor
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-6 pointer-events-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-6 pointer-events-auto">
       <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{initialData ? 'Editar Gestor' : 'Novo Gestor'}</h2>
@@ -109,10 +110,10 @@ export function ManagerFormModal({ initialData, onClose, onSuccess }: ManagerFor
           <div className="space-y-2">
             <label className="text-sm font-medium">Nível de Acesso</label>
             <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full h-11 rounded-xl bg-black/5 dark:bg-white/5 border-foreground/10">
                 <SelectValue placeholder="Selecione o acesso" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[150] rounded-xl">
                 <SelectItem value="GESTOR">Gestor</SelectItem>
                 <SelectItem value="ROOT">Administrador (ROOT)</SelectItem>
               </SelectContent>
@@ -127,6 +128,7 @@ export function ManagerFormModal({ initialData, onClose, onSuccess }: ManagerFor
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

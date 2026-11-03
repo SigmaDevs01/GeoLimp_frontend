@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, ZoomControl, useMapEvents, Marker, CircleMarker } from 'react-leaflet';
+import { useCallback, useEffect, useState } from 'react';
+import { MapContainer, useMapEvents, Marker } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { OpenFreeMapLayer } from '@/components/Map/OpenFreeMapLayer';
 import { HeatmapLayer } from '@/components/Map/HeatmapLayer';
 import { BottomDetailCard } from '@/components/Map/BottomDetailCard';
 import { SidebarLayout } from '@/components/Sidebar/SidebarLayout';
@@ -18,6 +19,7 @@ import { useOSStore } from '@/store/useOSStore';
 import { api } from '@/lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/shared/components/Logo';
+import { VALID_CATEGORIES } from '@/shared/constants/categories';
 
 // Fix Leaflet's default icon path issues
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -29,30 +31,62 @@ L.Icon.Default.mergeOptions({
 
 const DEFAULT_CENTER: [number, number] = [-5.5152, -47.4736];
 
-const getIcon = (type?: string) => {
+const normalizeStatus = (value?: string) => {
+  const upper = value?.trim().toUpperCase();
+  if (upper === 'RESOLVIDA' || upper === 'RESOLVIDO' || upper === 'CONCLUIDA' || upper === 'CONCLUÍDA') {
+    return 'RESOLVIDA';
+  }
+  if (upper === 'RECEBIDA' || upper === 'PENDENTE') {
+    return 'RECEBIDA';
+  }
+  return upper || '';
+};
+
+const getIcon = (type?: string, isSelected?: boolean) => {
   const isOS = type === 'OS';
+  const color = isOS ? '#3b82f6' : '#f97316';
+  const size = isSelected ? 12 : 9;
+  const ring = isSelected ? `0 0 0 4px ${isOS ? 'rgba(59,130,246,0.35)' : 'rgba(249,115,22,0.35)'}, ` : '';
   return L.divIcon({
     className: 'custom-map-icon',
-    html: `<div style="width: 14px; height: 14px; background-color: ${isOS ? '#3b82f6' : '#f97316'}; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7]
+    html: `<div style="width: ${size}px; height: ${size}px; background-color: ${color}; border: 1.5px solid white; border-radius: 50%; box-shadow: ${ring}0 0 4px rgba(0,0,0,0.4); transition: all 0.2s ease;"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2]
   });
 };
 
-function MapClickHandler({ 
+function MapEventsTracker({ 
   addMode, 
-  onLocationSelected 
+  onLocationSelected,
+  onZoomChange
 }: { 
   addMode: boolean; 
   onLocationSelected: (lat: number, lng: number) => void;
+  onZoomChange: (zoom: number) => void;
 }) {
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
       if (addMode) {
         onLocationSelected(e.latlng.lat, e.latlng.lng);
       }
     },
+    zoomanim(e: any) {
+      if (typeof e.zoom === 'number') {
+        onZoomChange(e.zoom);
+      }
+    },
+    zoom() {
+      onZoomChange(map.getZoom());
+    },
+    zoomend() {
+      onZoomChange(map.getZoom());
+    }
   });
+
+  useEffect(() => {
+    onZoomChange(map.getZoom());
+  }, [map, onZoomChange]);
+
   return null;
 }
 
@@ -68,6 +102,7 @@ export function MapPage() {
   
   const [category, setCategory] = useState('all');
   const [status, setStatus] = useState('all');
+  const [currentZoom, setCurrentZoom] = useState(16);
   
   const [typeFilter, setTypeFilter] = useState('denuncias');
   
@@ -87,16 +122,42 @@ export function MapPage() {
   const [osToEdit, setOsToEdit] = useState<any | null>(null);
   const [showOsFormModal, setShowOsFormModal] = useState(false);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const [suppressHeatmapOnFocus, setSuppressHeatmapOnFocus] = useState(false);
+  const maxAllowedZoom = user ? 19 : 17;
+
+  const handleZoomChange = useCallback((zoom: number) => {
+    const normalized = Math.round(zoom * 1000) / 1000;
+    setCurrentZoom(prev => (Math.floor(prev) === Math.floor(normalized) ? prev : normalized));
+  }, []);
 
   useEffect(() => {
-    if (mapInstance && selectedComplaint && selectedComplaint.latitude && selectedComplaint.longitude) {
+    if (!mapInstance) return;
+    mapInstance.setMaxZoom(maxAllowedZoom);
+    if (mapInstance.getZoom() > maxAllowedZoom) {
+      mapInstance.setZoom(maxAllowedZoom);
+    }
+  }, [mapInstance, maxAllowedZoom]);
+
+  const focusOnPoint = useCallback((comp: any) => {
+    setSelectedComplaint(comp);
+    if (mapInstance && comp?.latitude && comp?.longitude) {
+      const currentMapZoom = mapInstance.getZoom();
+      const targetZoom = Math.min(Math.max(Math.round(currentMapZoom) + 1, 18), maxAllowedZoom);
+
+      // Se já estava em zoom >= 18, evita que o zoom-out intermediário do flyTo pisque o heatmap
+      if (currentMapZoom >= 17.95 && targetZoom >= 18) {
+        setSuppressHeatmapOnFocus(true);
+        const clearSuppress = () => setSuppressHeatmapOnFocus(false);
+        mapInstance.once('moveend', clearSuppress);
+      }
+
       mapInstance.flyTo(
-        [selectedComplaint.latitude, selectedComplaint.longitude], 
-        18, 
-        { animate: true, duration: 1.5 }
+        [comp.latitude, comp.longitude],
+        targetZoom,
+        { animate: true, duration: 1.0 }
       );
     }
-  }, [mapInstance, selectedComplaint]);
+  }, [mapInstance, maxAllowedZoom]);
 
   useEffect(() => {
     init(); 
@@ -130,7 +191,10 @@ export function MapPage() {
       if (user?.role === 'cidadao' && item.type === 'OS') return;
 
       setUserComplaints(prev => 
-        prev.map(c => c.id === item.id ? item : c)
+        prev.map(c => c.id === item.id ? { ...c, ...item } : c)
+      );
+      setSelectedComplaint((prev: any) =>
+        prev?.id === item.id ? { ...prev, ...item } : prev
       );
     };
 
@@ -150,20 +214,21 @@ export function MapPage() {
     };
   }, [socket]);
 
-  useEffect(() => {
-    const fetchHeatmap = async () => {
-      try {
-        const response = await api.get(`/complaints/heatmap`, { params: { category, status } });
-        const points = response.data.map((item: any) => [
-          item.latitude, item.longitude, item.intensity || 1
-        ]) as [number, number, number][];
-        setHeatmapData(points);
-      } catch (error) {
-        console.error("Erro ao buscar heatmap", error);
-      }
-    };
-    fetchHeatmap();
+  const fetchHeatmap = useCallback(async () => {
+    try {
+      const response = await api.get(`/complaints/heatmap`, { params: { category, status } });
+      const points = response.data.map((item: any) => [
+        item.latitude, item.longitude, item.intensity || 1
+      ]) as [number, number, number][];
+      setHeatmapData(points);
+    } catch (error) {
+      console.error("Erro ao buscar heatmap", error);
+    }
   }, [category, status]);
+
+  useEffect(() => {
+    fetchHeatmap();
+  }, [fetchHeatmap]);
 
   const fetchMapData = async () => {
     if (!user) return;
@@ -216,6 +281,8 @@ export function MapPage() {
     if (!user) {
       setShowAuthWarning(true);
     } else if (user?.role === 'cidadao') {
+      window.dispatchEvent(new CustomEvent('open-map-tab'));
+      setSelectedComplaint(null);
       setComplaintToEdit(null);
       setShowFormModal(true);
       setAddMode(false);
@@ -264,12 +331,12 @@ export function MapPage() {
     setSelectedAddress('');
     setComplaintToEdit(null);
     fetchMapData(); // reload the user's complaints
-    // optionally, refetch heatmap
+    fetchHeatmap();
   };
 
   const filteredMapItems = userComplaints.filter(item => {
-    if (category !== 'all' && item.category?.toLowerCase() !== category.toLowerCase()) return false;
-    if (status !== 'all' && item.status?.toLowerCase() !== status.toLowerCase()) return false;
+    if (category !== 'all' && item.category?.trim().toLowerCase() !== category.trim().toLowerCase()) return false;
+    if (status !== 'all' && normalizeStatus(item.status) !== normalizeStatus(status)) return false;
     
     if (user?.role !== 'cidadao') {
       if (typeFilter === 'denuncias' && item.type !== 'DENUNCIA') return false;
@@ -278,23 +345,21 @@ export function MapPage() {
     return true;
   });
 
-  const mapTileUrl = theme === 'dark' 
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background font-sans">
       
       {user && (
         <SidebarLayout 
-          onComplaintSelect={(comp) => setSelectedComplaint(comp)} 
+          onComplaintSelect={(comp) => focusOnPoint(comp)} 
           onAddComplaint={handleAddClick}
           userComplaints={userComplaints}
         />
       )}
 
       {/* Top Header Filters */}
-      <div className={`absolute top-0 right-0 z-40 p-4 pointer-events-none flex justify-end items-start transition-all ${user ? 'left-96' : 'left-0 justify-between'}`}>
+      <div className={`absolute top-0 right-0 z-40 p-4 pointer-events-none flex justify-end items-start transition-all ${user ? 'left-24' : 'left-0 justify-between'}`}>
         {!user && (
           <div className="glass-panel glass-blur p-2 px-4 rounded-full pointer-events-auto flex items-center gap-3 ml-4 mt-2">
             <Logo showName className="h-10 w-auto text-foreground" />
@@ -305,10 +370,10 @@ export function MapPage() {
           <div className="flex items-center gap-2">
             {user && user.role !== 'cidadao' && (
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="glass-panel glass-blur border-none h-10 px-4 rounded-full text-sm font-medium w-[150px] focus:ring-0">
+                <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[150px] focus:ring-0">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
                   <SelectItem value="denuncias">Denúncias</SelectItem>
                   <SelectItem value="os">Ordens de Serviço</SelectItem>
                 </SelectContent>
@@ -316,26 +381,28 @@ export function MapPage() {
             )}
 
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="glass-panel glass-blur border-none h-10 px-4 rounded-full text-sm font-medium w-[160px] focus:ring-0">
+              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[195px] focus:ring-0">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-2xl max-h-80 custom-scrollbar bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
                 <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="buraco">Buraco</SelectItem>
-                <SelectItem value="entulho">Entulho</SelectItem>
-                <SelectItem value="iluminacao">Iluminação</SelectItem>
+                {VALID_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="glass-panel glass-blur border-none h-10 px-4 rounded-full text-sm font-medium w-[140px] focus:ring-0">
+              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[155px] focus:ring-0">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-2xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="resolvido">Resolvido</SelectItem>
+                <SelectItem value="RECEBIDA">Recebida</SelectItem>
+                <SelectItem value="EM_ANDAMENTO">Em Andamento</SelectItem>
+                <SelectItem value="RESOLVIDA">Resolvida</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -359,11 +426,12 @@ export function MapPage() {
         </div>
       </div>
 
-      {/* Floating Action Button - Only for Unlogged users now */}
-      {!user && !addMode && (
+      {/* Floating Action Button - For unlogged users and logged-in citizens */}
+      {(!user || user.role === 'cidadao') && !addMode && !osAddMode && !selectedComplaint && (
         <div className="absolute bottom-10 right-10 z-40 flex flex-col items-end gap-4 pointer-events-none">
           <button 
             onClick={handleAddClick}
+            title="Nova Denúncia"
             className="h-16 w-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 pointer-events-auto hover:scale-105 active:scale-95 bg-primary/90 text-primary-foreground hover:bg-primary"
           >
             <Plus size={32} />
@@ -383,41 +451,37 @@ export function MapPage() {
       {/* Map */}
       <MapContainer 
         center={DEFAULT_CENTER} 
-        zoom={15} 
-        maxZoom={20}
+        zoom={16} 
+        maxZoom={maxAllowedZoom}
         zoomControl={false}
         attributionControl={false}
         className="w-full h-full z-0 cursor-default absolute inset-0"
         style={{ cursor: addMode ? 'crosshair' : 'grab' }}
         ref={setMapInstance}
       >
-        <TileLayer
-          key={mapTileUrl}
-          url={mapTileUrl}
-          maxZoom={20}
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-        />
+        <OpenFreeMapLayer theme={theme} />
         
-        {typeFilter !== 'os' && <HeatmapLayer points={heatmapData} />}
+        {typeFilter !== 'os' && currentZoom < 18 && !suppressHeatmapOnFocus && <HeatmapLayer points={heatmapData} />}
         
-        <MapClickHandler 
+        <MapEventsTracker 
           addMode={addMode || osAddMode} 
           onLocationSelected={(lat, lng) => setSelectedLocation([lat, lng])} 
+          onZoomChange={handleZoomChange}
         />
 
         {(addMode || osAddMode) && selectedLocation && (
           <Marker position={selectedLocation} />
         )}
 
-        {!(addMode || osAddMode) && filteredMapItems.map(comp => (
+        {!(addMode || osAddMode) && currentZoom >= 16 && filteredMapItems.map(comp => (
           comp.latitude && comp.longitude && (
             <Marker 
               key={comp.id} 
               position={[comp.latitude, comp.longitude]}
-              icon={getIcon(comp.type)}
+              icon={getIcon(comp.type, selectedComplaint?.id === comp.id)}
               eventHandlers={{
                 click: () => {
-                  setSelectedComplaint(comp);
+                  focusOnPoint(comp);
                 }
               }}
             />
@@ -463,7 +527,7 @@ export function MapPage() {
       )}
 
       {showAuthWarning && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-opacity">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 transition-opacity">
           <div className="glass-panel max-w-sm w-full p-6 rounded-3xl flex flex-col items-center text-center animate-in zoom-in-95 fade-in duration-200">
             <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 mb-4">
               <AlertTriangle size={32} />

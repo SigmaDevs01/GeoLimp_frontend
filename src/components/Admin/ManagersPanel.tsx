@@ -60,7 +60,7 @@ export function ManagersPanel() {
         <Button onClick={handleOpenNew} className="rounded-full shadow-lg"><Plus size={18} className="mr-2" /> Novo Gestor</Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 flex-1 overflow-auto custom-scrollbar pr-2 pb-4 content-start">
+      <div className="grid grid-cols-1 gap-4 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-4 content-start">
         {loading ? (
           <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
         ) : managers.length === 0 ? (

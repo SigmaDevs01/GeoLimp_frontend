@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, Plus, Users, X, ChevronDown, MapPin, Trash2, Edit2, MoreVertical } from 'lucide-react';
+import { Search, Filter, Plus, Users, User, X, ChevronDown, MapPin, Trash2, Edit2, MoreVertical } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOSStore } from '@/store/useOSStore';
 import { useSocketStore } from '@/store/useSocketStore';
 import { OSFormModal } from './OSFormModal';
@@ -35,6 +37,9 @@ export function ServiceOrdersPanel() {
   const [osToDelete, setOsToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [completingOS, setCompletingOS] = useState<any>(null);
+  const [viewingTeam, setViewingTeam] = useState<any>(null);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
 
   const fetchOSs = async () => {
     setLoading(true);
@@ -132,6 +137,9 @@ export function ServiceOrdersPanel() {
       const found = list.find((o: any) => o.protocol === protocol);
       if (found) {
         setSelectedOS(found);
+        setTimeout(() => {
+          document.getElementById(`os-card-${found.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
       }
     };
 
@@ -167,7 +175,7 @@ export function ServiceOrdersPanel() {
 
   const handleCompleteOS = async () => {
     try {
-      await api.patch(`/service-orders/${completingOS.id}/status`, { status: 'CONCLUIDA' });
+      await api.patch(`/service-orders/${completingOS.id}/status`, { status: 'RESOLVIDA' });
       setCompletingOS(null);
       fetchOSs();
     } catch (e) {
@@ -198,6 +206,39 @@ export function ServiceOrdersPanel() {
     }
   };
 
+  const handleViewComplaint = (protocol: string) => {
+    window.dispatchEvent(new CustomEvent('open-complaints-tab'));
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('open-complaint', { detail: { protocol } }));
+    }, 50);
+  };
+
+  const handleOpenTeamMembers = async (team: any) => {
+    if (!team) return;
+    const cachedTeam = teams.find(t => t.id === team.id);
+    const initialMembers = team.professionals ?? cachedTeam?.professionals ?? [];
+    setViewingTeam({ ...cachedTeam, ...team });
+    setTeamMembers(initialMembers);
+    setLoadingTeamMembers(initialMembers.length === 0);
+    try {
+      const res = await api.get(`/operations/teams/${team.id}/professionals`);
+      setTeamMembers(res.data);
+    } catch (e) {
+      console.error('Erro ao buscar membros da equipe', e);
+    } finally {
+      setLoadingTeamMembers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!viewingTeam) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setViewingTeam(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [viewingTeam]);
+
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-left-4 duration-500 relative">
       <div className="flex items-center justify-between mb-6">
@@ -216,24 +257,26 @@ export function ServiceOrdersPanel() {
         <Button variant="outline" className="rounded-xl border-foreground/10"><Filter size={18} className="mr-2" /> Filtros</Button>
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar pr-2 space-y-3">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 space-y-3">
         {loading ? (
           <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
         ) : serviceOrders.length === 0 ? (
           <div className="text-center py-10 text-foreground/50">Nenhuma Ordem de Serviço encontrada.</div>
         ) : (
           serviceOrders.map(os => (
-            <div key={os.id} className="rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 transition-all flex flex-col overflow-hidden">
+            <div id={`os-card-${os.id}`} key={os.id} className="rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 transition-all flex flex-col overflow-hidden">
               <div onClick={() => toggleDetails(os.id)} className="p-5 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <span className="font-bold text-primary">{os.protocol}</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                      os.status === 'RESOLVIDA' || os.status === 'CONCLUIDA' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
-                      os.status === 'EM_ANDAMENTO' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
+                      os.status?.toUpperCase() === 'RESOLVIDA' || os.status?.toUpperCase() === 'RESOLVIDO' || os.status?.toUpperCase() === 'CONCLUIDA' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
+                      os.status?.toUpperCase() === 'EM_ANDAMENTO' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
                       'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
                     }`}>
-                      {(os.status || 'PENDENTE').replace('_', ' ')}
+                      {(os.status?.toUpperCase() === 'CONCLUIDA' || os.status?.toUpperCase() === 'RESOLVIDO'
+                        ? 'RESOLVIDA'
+                        : (os.status || 'RECEBIDA')).replace('_', ' ')}
                     </span>
                   </div>
                   <h4 className="text-foreground font-medium">{os.category}</h4>
@@ -249,10 +292,20 @@ export function ServiceOrdersPanel() {
                 <div className="px-5 pb-5 pt-0 border-t border-foreground/10 mt-2 animate-in slide-in-from-top-2 fade-in duration-300">
                   <div className="space-y-4 text-sm mt-4">
                     {selectedOS.assignedTeam && (
-                      <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl">
-                        <span className="text-blue-600 dark:text-blue-400 block text-xs mb-1 font-semibold uppercase">Equipe Responsável</span>
-                        <span className="font-bold">{selectedOS.assignedTeam.name}</span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenTeamMembers(selectedOS.assignedTeam)}
+                        className="w-full text-left bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 p-3 rounded-xl transition-all cursor-pointer flex items-center justify-between group"
+                      >
+                        <div>
+                          <span className="text-blue-600 dark:text-blue-400 block text-xs mb-1 font-semibold uppercase">Equipe Responsável</span>
+                          <span className="font-bold text-foreground">{selectedOS.assignedTeam.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 opacity-75 group-hover:opacity-100 transition-opacity">
+                          <Users size={16} />
+                          <span>Ver membros</span>
+                        </div>
+                      </button>
                     )}
                     <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl">
                       <span className="text-foreground/50 block text-xs mb-1">Descrição</span>
@@ -284,6 +337,16 @@ export function ServiceOrdersPanel() {
                       {selectedOS.status === 'EM_ANDAMENTO' && (
                         <Button onClick={() => setCompletingOS(selectedOS)} size="sm" className="rounded-lg bg-green-600 hover:bg-green-700 text-white">Concluir Serviço</Button>
                       )}
+
+                      {selectedOS.complaint?.protocol && (
+                        <Button
+                          onClick={() => handleViewComplaint(selectedOS.complaint.protocol)}
+                          size="sm"
+                          className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+                        >
+                          Ver Denúncia
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -305,43 +368,81 @@ export function ServiceOrdersPanel() {
       )}
 
       {/* Modal Atribuir Equipe */}
-      {assigningOS && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl p-6">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-foreground/10">
+      {assigningOS && createPortal(
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
+          onClick={() => {
+            setAssigningOS(null);
+            setSelectedTeamId('');
+          }}
+        >
+          <div
+            className="bg-background p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">Atribuir Equipe</h3>
-              <button onClick={() => setAssigningOS(null)} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
-            </div>
-            <p className="text-sm text-foreground/70 mb-4">Mover a OS <b>{assigningOS.protocol}</b> para "Em Andamento". Selecione a equipe responsável pelo serviço:</p>
-            <div className="space-y-4">
-              <select 
-                className="w-full h-10 px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border-foreground/10 border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                value={selectedTeamId}
-                onChange={e => setSelectedTeamId(e.target.value)}
+              <h3 className="text-xl font-bold text-foreground">Atribuir Equipe</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setAssigningOS(null);
+                  setSelectedTeamId('');
+                }}
+                className="p-1.5 rounded-full text-foreground/50 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
               >
-                <option value="">-- Selecione a Equipe --</option>
-                {teams.map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-              <Button onClick={handleAssignTeam} className="w-full">Iniciar OS</Button>
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-foreground/70 mb-4">
+              Mover a OS <b>{assigningOS.protocol}</b> para &quot;Em Andamento&quot;. Selecione a equipe responsável pelo serviço:
+            </p>
+            <div className="space-y-4">
+              <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-black/5 dark:bg-white/5 border-foreground/10 text-foreground text-sm">
+                  <SelectValue placeholder="Selecione a equipe..." />
+                </SelectTrigger>
+                <SelectContent className="z-[150] max-h-72 rounded-xl custom-scrollbar">
+                  {teams.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-foreground/50">
+                      Nenhuma equipe cadastrada
+                    </div>
+                  ) : (
+                    teams.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <Button onClick={handleAssignTeam} className="w-full rounded-xl h-11">
+                Iniciar OS
+              </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Confirmar Conclusão */}
-      {completingOS && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl p-6">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-foreground/10 text-center">
-            <h3 className="text-xl font-bold mb-2">Concluir OS</h3>
+      {completingOS && createPortal(
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
+          onClick={() => setCompletingOS(null)}
+        >
+          <div
+            className="bg-background p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-foreground/10 text-center animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-2 text-foreground">Concluir OS</h3>
             <p className="text-sm text-foreground/70 mb-6">Deseja realmente marcar a Ordem de Serviço <b>{completingOS.protocol}</b> como concluída?</p>
             <div className="flex gap-3 justify-center">
               <Button variant="outline" onClick={() => setCompletingOS(null)}>Cancelar</Button>
               <Button onClick={handleCompleteOS} className="bg-green-600 hover:bg-green-700 text-white">Confirmar</Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit OS Modal */}
@@ -354,6 +455,81 @@ export function ServiceOrdersPanel() {
             fetchOSs();
           }}
         />
+      )}
+
+      {/* Modal Membros da Equipe */}
+      {viewingTeam && createPortal(
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
+          onClick={() => setViewingTeam(null)}
+        >
+          <div
+            className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start gap-4 mb-4">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-1">
+                  Membros da Equipe
+                </span>
+                <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  <Users size={20} className="text-primary shrink-0" />
+                  <span>{viewingTeam.name}</span>
+                </h3>
+                {viewingTeam.description && (
+                  <p className="text-xs text-foreground/60 mt-1">{viewingTeam.description}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingTeam(null)}
+                className="p-1.5 rounded-full text-foreground/50 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {!loadingTeamMembers && (
+              <div className="text-xs font-medium text-foreground/50 mb-3">
+                {teamMembers.length} {teamMembers.length === 1 ? 'profissional vinculado' : 'profissionais vinculados'}
+              </div>
+            )}
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+              {loadingTeamMembers ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : teamMembers.length === 0 ? (
+                <div className="text-center py-8 text-foreground/50 text-sm bg-black/5 dark:bg-white/5 rounded-xl border border-foreground/5">
+                  Nenhum profissional vinculado a esta equipe.
+                </div>
+              ) : (
+                teamMembers.map((member: any) => (
+                  <div
+                    key={member.id}
+                    className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-foreground/10 flex items-center gap-3"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                      <User size={16} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-sm text-foreground truncate">{member.fullName}</p>
+                      <p className="text-xs text-foreground/60">Matrícula: {member.identifier}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-foreground/10 flex justify-end">
+              <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setViewingTeam(null)}>
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete OS Alert Dialog */}

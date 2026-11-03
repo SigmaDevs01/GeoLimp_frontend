@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/shared/components/Logo';
 import { api } from '@/lib/api';
 import { useThemeStore } from '@/store/useThemeStore';
-import { Loader2, Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Sun, Moon, X } from 'lucide-react';
 
 export function Register() {
   const [name, setName] = useState('');
@@ -41,9 +41,24 @@ export function Register() {
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
 
       <div className="absolute top-4 right-4 z-50">
-        <button 
-          onClick={toggleTheme} 
-          className="p-3 rounded-full bg-background/50 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm"
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          title="Voltar para o Mapa"
+          aria-label="Voltar para o Mapa"
+          className="p-3 rounded-full bg-background/50 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm cursor-pointer"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="absolute bottom-4 left-4 z-50">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+          aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+          className="p-3 rounded-full bg-background/50 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm cursor-pointer"
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
@@ -129,16 +144,13 @@ export function Register() {
             Cadastrar
           </Button>
 
-          <div className="text-center mt-6 flex flex-col gap-2">
+          <div className="text-center mt-6">
             <p className="text-sm text-foreground/70">
               Já tem uma conta?{' '}
               <Link to="/login" className="text-primary hover:underline font-semibold">
                 Fazer Login
               </Link>
             </p>
-            <Button variant="ghost" type="button" className="w-full text-foreground/60 hover:text-foreground" onClick={() => navigate('/')}>
-              Voltar para o Mapa
-            </Button>
           </div>
         </form>
       </div>

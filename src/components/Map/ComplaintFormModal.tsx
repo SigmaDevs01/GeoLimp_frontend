@@ -4,20 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
-
-const ValidCategories = [
-  'Buraco na via / rua',
-  'Entulho',
-  'Lixo acumulado',
-  'Iluminação pública',
-  'Problemas em calçadas',
-  'Sinalização danificada',
-  'Semáforo com defeito',
-  'Pavimentação',
-  'Drenagem / alagamento',
-  'Árvore ou vegetação interferindo na via (Poda/Manejo)',
-  'Outros problemas de infraestrutura.'
-];
+import { VALID_CATEGORIES } from '@/shared/constants/categories';
 
 interface ComplaintFormModalProps {
   onClose: () => void;
@@ -171,7 +158,7 @@ export function ComplaintFormModal({
                   <SelectValue placeholder="Selecione o problema..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {ValidCategories.map(cat => (
+                  {VALID_CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>

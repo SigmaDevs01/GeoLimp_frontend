@@ -1,10 +1,11 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { useThemeStore } from '@/store/useThemeStore';
 import { api } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
+import { OpenFreeMapLayer } from '@/components/Map/OpenFreeMapLayer';
 
 // Fix for default marker icon in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -54,10 +55,7 @@ export function OSMap() {
         style={{ height: '100%', width: '100%', zIndex: 0 }}
         zoomControl={false}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <OpenFreeMapLayer theme={theme} />
 
         {items.map((item) => (
           item.latitude && item.longitude && (
