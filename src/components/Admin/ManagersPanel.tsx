@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { ManagerFormModal } from './ManagerFormModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export function ManagersPanel() {
   const [managers, setManagers] = useState<any[]>([]);
@@ -10,6 +20,10 @@ export function ManagersPanel() {
 
   const [showModal, setShowModal] = useState(false);
   const [managerToEdit, setManagerToEdit] = useState<any>(null);
+
+  // Modal de confirmação de exclusão
+  const [managerToDelete, setManagerToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchManagers = async () => {
     setLoading(true);
@@ -38,15 +52,18 @@ export function ManagersPanel() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Tem certeza que deseja excluir o gestor ${name}?`)) {
-      try {
-        await api.delete(`/users/${id}`);
-        fetchManagers();
-      } catch (e) {
-        console.error("Erro ao excluir", e);
-        alert("Erro ao excluir gestor.");
-      }
+  const handleConfirmDelete = async () => {
+    if (!managerToDelete) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/users/${managerToDelete.id}`);
+      setManagerToDelete(null);
+      fetchManagers();
+    } catch (e) {
+      console.error("Erro ao excluir", e);
+      alert("Erro ao excluir gestor.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -97,7 +114,7 @@ export function ManagersPanel() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => handleDelete(manager.id, manager.name)}
+                  onClick={() => setManagerToDelete(manager)}
                   className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 hover:text-destructive"
                   title="Excluir"
                 >
@@ -119,6 +136,37 @@ export function ManagersPanel() {
           }}
         />
       )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      <AlertDialog open={!!managerToDelete} onOpenChange={(open) => !open && setManagerToDelete(null)}>
+        <AlertDialogContent className="z-[150] max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Gestor</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o gestor <b>{managerToDelete?.name}</b>? Essa ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting} className="rounded-xl">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                'Sim, excluir'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

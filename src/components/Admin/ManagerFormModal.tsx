@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,6 +20,7 @@ export function ManagerFormModal({ initialData, onClose, onSuccess }: ManagerFor
     role: 'GESTOR'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     if (initialData) {
@@ -35,39 +36,56 @@ export function ManagerFormModal({ initialData, onClose, onSuccess }: ManagerFor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMsg('');
     try {
-      const payload: any = { ...formData };
+      const payload: any = {};
       
       if (initialData?.id) {
-        // If editing and password is empty, don't send it
-        if (!payload.password) {
-          delete payload.password;
+        if (formData.name && formData.name !== initialData.name) {
+          payload.name = formData.name;
         }
-        await api.patch(`/users/${initialData.id}`, payload);
+        if (formData.email && formData.email !== initialData.email) {
+          payload.email = formData.email;
+        }
+        if (formData.role && formData.role !== initialData.role) {
+          payload.role = formData.role;
+        }
+        if (formData.password) {
+          payload.password = formData.password;
+        }
+
+        // Se não houve alteração alguma, apenas fecha com sucesso
+        if (Object.keys(payload).length > 0) {
+          await api.patch(`/users/${initialData.id}`, payload);
+        }
       } else {
         // Create mode
-        if (!payload.password) {
-          alert('A senha é obrigatória para criar um novo gestor.');
+        if (!formData.password) {
+          setErrorMsg('A senha é obrigatória para criar um novo gestor.');
           setIsSubmitting(false);
           return;
         }
-        await api.post('/users', payload);
+        await api.post('/users', formData);
       }
       onSuccess();
     } catch (e: any) {
       console.error("Erro ao salvar gestor", e);
-      alert(e.response?.data?.message || "Erro ao salvar gestor. Verifique os campos e o e-mail.");
+      setErrorMsg(e.response?.data?.message || "Erro ao salvar gestor. Verifique os campos e o e-mail.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-6 pointer-events-auto">
-      <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
+      <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{initialData ? 'Editar Gestor' : 'Novo Gestor'}</h2>
-          <button onClick={onClose} className="p-2 bg-black/5 dark:bg-white/5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="p-2 bg-black/5 dark:bg-white/5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+          >
             <X size={16} />
           </button>
         </div>
@@ -120,10 +138,21 @@ export function ManagerFormModal({ initialData, onClose, onSuccess }: ManagerFor
             </Select>
           </div>
 
+          {errorMsg && (
+            <p className="text-destructive text-sm font-medium">{errorMsg}</p>
+          )}
+
           <div className="pt-2 flex justify-end gap-2">
-            <Button variant="ghost" type="button" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvando...' : 'Salvar Gestor'}
+            <Button variant="ghost" type="button" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
+            <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Gestor'
+              )}
             </Button>
           </div>
         </form>
