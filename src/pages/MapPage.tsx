@@ -461,7 +461,7 @@ export function MapPage() {
       >
         <OpenFreeMapLayer theme={theme} />
         
-        {typeFilter !== 'os' && currentZoom < 18 && !suppressHeatmapOnFocus && <HeatmapLayer points={heatmapData} />}
+        {typeFilter !== 'os' && !suppressHeatmapOnFocus && <HeatmapLayer points={heatmapData} />}
         
         <MapEventsTracker 
           addMode={addMode || osAddMode} 

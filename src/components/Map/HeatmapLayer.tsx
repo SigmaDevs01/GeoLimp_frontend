@@ -76,6 +76,7 @@ export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
       origInitCanvas.call(this);
       if (this._canvas) {
         this._canvas.style.transformOrigin = '0 0';
+        this._canvas.style.transition = 'opacity 0.3s ease-out';
       }
       patchSimpleHeatRadius(this._heat);
       this._updateOptions();
@@ -176,13 +177,16 @@ export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
 
     const updateCanvasFade = (zoom: number) => {
       if (!heatLayer._canvas) return;
-      if (zoom <= 17.2) {
+      if (zoom < 17.0) {
         heatLayer._canvas.style.opacity = '1';
-      } else if (zoom >= 18) {
+        heatLayer._canvas.style.visibility = 'visible';
+      } else if (zoom >= 18.0) {
         heatLayer._canvas.style.opacity = '0';
+        heatLayer._canvas.style.visibility = 'hidden';
       } else {
-        const fade = (18 - zoom) / 0.8;
+        const fade = (18.0 - zoom) / 1.0;
         heatLayer._canvas.style.opacity = String(Math.max(0, Math.min(1, fade)));
+        heatLayer._canvas.style.visibility = 'visible';
       }
     };
 
