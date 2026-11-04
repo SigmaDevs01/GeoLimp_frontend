@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, MapPin, Upload, Camera, Loader2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,30 +135,34 @@ export function ComplaintFormModal({
     }
   };
 
-  return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 ${hidden ? 'hidden' : ''}`}>
-      <div className="bg-background w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 fade-in duration-200 relative border border-border">
+  return createPortal(
+    <div className={`fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/75 pointer-events-auto animate-in fade-in duration-200 ${hidden ? 'hidden' : ''}`}>
+      <div className="bg-background w-full max-w-lg rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 relative border border-foreground/10 p-6">
         
-        <div className="flex justify-between items-center p-6 border-b border-border bg-muted/30">
-          <h2 className="text-2xl font-bold text-foreground">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-foreground">
             {initialData ? 'Editar Denúncia' : 'Nova Denúncia'}
           </h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all">
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="p-1.5 rounded-full text-foreground/50 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-          <form id="complaintForm" onSubmit={handleSubmit} className="space-y-6">
+        <div className="overflow-y-auto flex-1 custom-scrollbar pr-1">
+          <form id="complaintForm" onSubmit={handleSubmit} className="space-y-4">
             
             {/* Categoria */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground/90">Categoria *</label>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Categoria *</label>
               <Select value={category} onValueChange={setCategory} required>
-                <SelectTrigger className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground h-12 rounded-xl">
+                <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-black/5 dark:bg-white/5 border-foreground/10 text-foreground text-sm">
                   <SelectValue placeholder="Selecione o problema..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[150] max-h-80 rounded-xl custom-scrollbar">
                   {VALID_CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
@@ -166,42 +171,42 @@ export function ComplaintFormModal({
             </div>
 
             {/* Localização via Mapa ou Texto */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground/90">Endereço *</label>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Endereço *</label>
               <div className="flex gap-2">
                 <Input 
                   value={address || (selectedAddress !== 'Clique no mapa para marcar o local' ? selectedAddress : '')}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Ex: Rua das Flores, 123"
-                  className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground h-12 rounded-xl flex-1"
+                  className="bg-black/5 dark:bg-white/5 border-foreground/10 text-foreground h-11 rounded-xl flex-1 text-sm"
                   required
                 />
                 <Button 
                   type="button" 
                   onClick={onRequestMapSelection}
-                  className="h-12 px-4 rounded-xl flex items-center gap-2 bg-primary/20 text-primary hover:bg-primary/30"
+                  className="h-11 px-3 rounded-xl flex items-center gap-2 border border-foreground/10 bg-black/5 dark:bg-white/5 text-foreground hover:bg-black/10 dark:hover:bg-white/10"
                 >
-                  <MapPin size={20} />
-                  <span className="hidden sm:inline">Mapa</span>
+                  <MapPin size={18} />
+                  <span className="hidden sm:inline text-xs font-semibold">Mapa</span>
                 </Button>
               </div>
             </div>
 
             {/* Descrição */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground/90">Descrição Detalhada *</label>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Descrição Detalhada *</label>
               <textarea 
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Descreva o problema com o máximo de detalhes possível..."
-                className="w-full bg-black/5 dark:bg-white/5 border border-foreground/20 text-foreground rounded-xl p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full bg-black/5 dark:bg-white/5 border border-foreground/10 text-foreground rounded-xl p-3 min-h-[90px] text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                 required
               />
             </div>
 
             {/* Foto (Opcional) */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground/90">Foto (Opcional)</label>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Foto (Opcional)</label>
               <input 
                 type="file" 
                 accept="image/*" 
@@ -214,16 +219,16 @@ export function ComplaintFormModal({
               {!photoBase64 ? (
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-32 rounded-xl border-2 border-dashed border-foreground/20 hover:border-primary/50 hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all gap-2 text-foreground/50 hover:text-primary"
+                  className="w-full h-28 rounded-xl border-2 border-dashed border-foreground/20 hover:border-primary/50 hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all gap-1.5 text-foreground/50 hover:text-primary"
                 >
-                  <div className="flex gap-4">
-                    <Camera size={24} />
-                    <ImageIcon size={24} />
+                  <div className="flex gap-3">
+                    <Camera size={20} />
+                    <ImageIcon size={20} />
                   </div>
-                  <span className="text-sm font-medium">Tirar foto ou anexar imagem</span>
+                  <span className="text-xs font-medium">Tirar foto ou anexar imagem</span>
                 </div>
               ) : (
-                <div className="relative w-full h-48 rounded-xl overflow-hidden border border-foreground/20 group">
+                <div className="relative w-full h-40 rounded-xl overflow-hidden border border-foreground/20 group">
                   <img src={photoBase64} alt="Preview" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Button 
@@ -243,17 +248,27 @@ export function ComplaintFormModal({
           </form>
         </div>
 
-        <div className="p-6 border-t border-border bg-muted/30 flex justify-end gap-3">
-          <Button variant="ghost" onClick={onClose} className="rounded-xl px-6 h-12">
+        <div className="pt-4 mt-2 border-t border-foreground/10 flex justify-end gap-2">
+          <Button variant="ghost" onClick={onClose} disabled={loading} className="rounded-xl">
             Cancelar
           </Button>
-          <Button type="submit" form="complaintForm" className="rounded-xl px-8 h-12 text-base font-semibold shadow-xl" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : <Upload className="w-5 h-5 mr-2" />}
-            {initialData ? 'Salvar Alterações' : 'Enviar Denúncia'}
+          <Button type="submit" form="complaintForm" className="rounded-xl px-6 min-w-[140px]" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                {initialData ? 'Salvar Alterações' : 'Enviar Denúncia'}
+              </>
+            )}
           </Button>
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
