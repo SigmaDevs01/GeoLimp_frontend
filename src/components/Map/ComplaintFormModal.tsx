@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
 import { VALID_CATEGORIES } from '@/shared/constants/categories';
+import { convertToWebP } from '@/shared/utils/image';
 
 interface ComplaintFormModalProps {
   onClose: () => void;
@@ -46,51 +47,10 @@ export function ComplaintFormModal({
     }
   });
 
-  const convertToWebP = (file: File) => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-
-          // Max dimensions
-          const MAX_SIZE = 1200;
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          // Convert to WebP, quality 0.8
-          const dataUrl = canvas.toDataURL('image/webp', 0.8);
-          resolve(dataUrl);
-        };
-        img.onerror = (err) => reject(err);
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = (err) => reject(err);
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       try {
-        const webpBase64 = await convertToWebP(e.target.files[0]);
+        const webpBase64 = await convertToWebP(e.target.files[0], 1000, 0.75);
         setPhotoBase64(webpBase64);
       } catch (err) {
         console.error("Erro ao converter imagem", err);
