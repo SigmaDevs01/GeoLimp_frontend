@@ -176,13 +176,12 @@ export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
 
     const updateCanvasFade = (zoom: number) => {
       if (!heatLayer._canvas) return;
-      if (zoom <= 16.8) {
+      if (zoom <= 17.2) {
         heatLayer._canvas.style.opacity = '1';
-      } else if (zoom >= 18.0) {
+      } else if (zoom >= 18) {
         heatLayer._canvas.style.opacity = '0';
       } else {
-        // Transição suave e gradual entre o zoom 16.8 e 18.0
-        const fade = (18.0 - zoom) / 1.2;
+        const fade = (18 - zoom) / 0.8;
         heatLayer._canvas.style.opacity = String(Math.max(0, Math.min(1, fade)));
       }
     };
