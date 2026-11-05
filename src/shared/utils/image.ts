@@ -58,3 +58,4 @@ export function convertToWebP(
     reader.readAsDataURL(file);
   });
 }
+

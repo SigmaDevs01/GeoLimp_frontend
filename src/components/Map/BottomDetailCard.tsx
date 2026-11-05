@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useState, useRef, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { ImageGalleryModal } from '@/shared/components/ImageGalleryModal';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -177,7 +178,7 @@ export function BottomDetailCard({ complaint, onClose }: BottomDetailCardProps) 
                   {complaint.photos && complaint.photos.length > 0 && (
                     <Button variant="outline" size="sm" className="h-7 px-3 rounded-full text-[10px] font-semibold shrink-0" onClick={() => setShowImage(true)}>
                       <ImageIcon size={12} className="mr-1.5" />
-                      Foto
+                      {complaint.photos.length > 1 ? `Fotos (${complaint.photos.length})` : 'Foto'}
                     </Button>
                   )}
                   
@@ -240,14 +241,12 @@ export function BottomDetailCard({ complaint, onClose }: BottomDetailCardProps) 
         </div>
       </div>
 
-      {showImage && complaint.photos && complaint.photos.length > 0 && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 animate-in fade-in zoom-in-95 pointer-events-auto" onClick={() => setShowImage(false)}>
-          <img src={complaint.photos[0]} alt="Denúncia" className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" />
-          <button className="absolute top-6 right-6 p-3 bg-black/50 text-white rounded-full hover:bg-black/80 transition-colors">
-            <X size={24} />
-          </button>
-        </div>
-      )}
+      <ImageGalleryModal
+        isOpen={showImage}
+        photos={complaint.photos || []}
+        title={complaint.category || 'Fotos da Denúncia'}
+        onClose={() => setShowImage(false)}
+      />
 
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent className="z-[110]">

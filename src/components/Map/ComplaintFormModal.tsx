@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, MapPin, Upload, Camera, Loader2, Image as ImageIcon } from 'lucide-react';
+import { X, MapPin, Upload, Camera, Loader2, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,10 +32,11 @@ export function ComplaintFormModal({
   const [description, setDescription] = useState(initialData?.description || '');
   const [address, setAddress] = useState(initialData?.address || selectedAddress);
   
-  const [photoBase64, setPhotoBase64] = useState<string | null>(
-    initialData?.photos && initialData.photos.length > 0 ? initialData.photos[0] : null
+  const [photos, setPhotos] = useState<string[]>(
+    Array.isArray(initialData?.photos) ? initialData.photos : []
   );
   const [loading, setLoading] = useState(false);
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [error, setError] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,15 +49,41 @@ export function ComplaintFormModal({
   });
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      try {
-        const webpBase64 = await convertToWebP(e.target.files[0], 1000, 0.75);
-        setPhotoBase64(webpBase64);
-      } catch (err) {
-        console.error("Erro ao converter imagem", err);
-        setError("Erro ao processar imagem.");
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const availableSlots = 5 - photos.length;
+    if (availableSlots <= 0) {
+      setError('O limite máximo é de 5 fotos por denúncia.');
+      return;
+    }
+
+    setIsProcessingPhotos(true);
+    setError('');
+
+    try {
+      const filesToProcess = Array.from(files).slice(0, availableSlots);
+      const convertedPhotos: string[] = [];
+
+      for (const file of filesToProcess) {
+        const webpBase64 = await convertToWebP(file, 1000, 0.75);
+        convertedPhotos.push(webpBase64);
+      }
+
+      setPhotos((prev) => [...prev, ...convertedPhotos]);
+    } catch (err) {
+      console.error('Erro ao converter imagens', err);
+      setError('Erro ao processar as fotos enviadas.');
+    } finally {
+      setIsProcessingPhotos(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     }
+  };
+
+  const removePhoto = (indexToRemove: number) => {
+    setPhotos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,17 +96,12 @@ export function ComplaintFormModal({
         category,
         description,
         address: address || selectedAddress,
+        photos: photos || [],
       };
 
       if (selectedLocation) {
         payload.latitude = selectedLocation[0];
         payload.longitude = selectedLocation[1];
-      }
-
-      if (photoBase64) {
-        payload.photos = [photoBase64];
-      } else {
-        payload.photos = [];
       }
 
       if (initialData?.id) {
@@ -164,44 +186,62 @@ export function ComplaintFormModal({
               />
             </div>
 
-            {/* Foto (Opcional) */}
+            {/* Fotos (Opcional - Até 5 imagens) */}
             <div>
-              <label className="text-sm font-medium mb-1 block">Foto (Opcional)</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-sm font-medium">Fotos (Opcional)</label>
+                <span className="text-xs text-foreground/50 font-medium">
+                  {photos.length} de 5 adicionada{photos.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
               <input 
                 type="file" 
                 accept="image/*" 
-                capture="environment" 
+                multiple
                 className="hidden" 
                 ref={fileInputRef}
                 onChange={handleFileChange}
+                disabled={photos.length >= 5 || isProcessingPhotos}
               />
               
-              {!photoBase64 ? (
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-28 rounded-xl border-2 border-dashed border-foreground/20 hover:border-primary/50 hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all gap-1.5 text-foreground/50 hover:text-primary"
-                >
-                  <div className="flex gap-3">
-                    <Camera size={20} />
-                    <ImageIcon size={20} />
-                  </div>
-                  <span className="text-xs font-medium">Tirar foto ou anexar imagem</span>
-                </div>
-              ) : (
-                <div className="relative w-full h-40 rounded-xl overflow-hidden border border-foreground/20 group">
-                  <img src={photoBase64} alt="Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button 
-                      type="button" 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => setPhotoBase64(null)}
+              {/* Grid de Fotos e Botão de Adição */}
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
+                {photos.map((photo, index) => (
+                  <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-foreground/20 group">
+                    <img src={photo} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
+                    <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                      {index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white hover:text-destructive"
+                      title="Remover foto"
                     >
-                      Remover Imagem
-                    </Button>
+                      <Trash2 size={18} />
+                    </button>
                   </div>
-                </div>
-              )}
+                ))}
+
+                {photos.length < 5 && (
+                  <div 
+                    onClick={() => !isProcessingPhotos && fileInputRef.current?.click()}
+                    className={`aspect-square rounded-xl border-2 border-dashed border-foreground/20 hover:border-primary/50 hover:bg-primary/5 flex flex-col items-center justify-center cursor-pointer transition-all gap-1 text-foreground/50 hover:text-primary ${
+                      isProcessingPhotos ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isProcessingPhotos ? (
+                      <Loader2 size={18} className="animate-spin text-primary" />
+                    ) : (
+                      <>
+                        <Plus size={20} />
+                        <span className="text-[10px] font-semibold text-center leading-tight">Adicionar</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {error && <p className="text-destructive text-sm font-medium">{error}</p>}

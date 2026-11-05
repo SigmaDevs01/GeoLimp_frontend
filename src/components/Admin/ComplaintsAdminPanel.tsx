@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Filter, MapPin, X, ChevronDown, Map, Image as ImageIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useSocketStore } from '@/store/useSocketStore';
+import { ImageGalleryModal } from '@/shared/components/ImageGalleryModal';
 
 export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?: (comp: any) => void }) {
   const [complaints, setComplaints] = useState<any[]>([]);
@@ -197,7 +198,7 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
                       {selectedComplaint.photos && selectedComplaint.photos.length > 0 && (
                         <Button variant="outline" size="sm" className="rounded-lg" onClick={() => setShowImage(true)}>
                           <ImageIcon size={16} className="mr-2" />
-                          Foto
+                          {selectedComplaint.photos.length > 1 ? `Fotos (${selectedComplaint.photos.length})` : 'Foto'}
                         </Button>
                       )}
                       
@@ -223,15 +224,12 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
         )}
       </div>
 
-      {showImage && selectedComplaint?.photos && selectedComplaint.photos.length > 0 && createPortal(
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 p-4 animate-in fade-in zoom-in-95 pointer-events-auto" onClick={() => setShowImage(false)}>
-          <img src={selectedComplaint.photos[0]} alt="Denúncia" className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" />
-          <button className="absolute top-6 right-6 p-3 bg-black/50 text-white rounded-full hover:bg-black/80 transition-colors">
-            <X size={24} />
-          </button>
-        </div>,
-        document.body
-      )}
+      <ImageGalleryModal
+        isOpen={showImage}
+        photos={selectedComplaint?.photos || []}
+        title={selectedComplaint?.category || 'Fotos da Denúncia'}
+        onClose={() => setShowImage(false)}
+      />
     </div>
   );
 }
