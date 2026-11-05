@@ -7,9 +7,10 @@ import { useThemeStore } from '@/store/useThemeStore';
 interface HeatmapLayerProps {
   points: [number, number, number][]; // [lat, lng, intensity]
   options?: L.HeatMapOptions;
+  isResolved?: boolean;
 }
 
-export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
+export function HeatmapLayer({ points, options, isResolved = false }: HeatmapLayerProps) {
   const map = useMap();
   const theme = useThemeStore((state) => state.theme);
 
@@ -21,6 +22,16 @@ export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
     const baseRadius = 42;
     const baseBlur = 30;
     const isLight = theme === 'light';
+
+    const defaultGradient = isLight
+      ? { 0.1: '#f59e0b', 0.5: '#ea580c', 0.85: '#dc2626', 1.0: '#991b1b' }
+      : { 0.15: '#facc15', 0.55: '#f97316', 0.85: '#ef4444', 1.0: '#dc2626' };
+
+    const resolvedGradient = isLight
+      ? { 0.1: '#86efac', 0.4: '#4ade80', 0.7: '#22c55e', 0.9: '#16a34a', 1.0: '#15803d' }
+      : { 0.15: '#a7f3d0', 0.45: '#34d399', 0.75: '#10b981', 1.0: '#059669' };
+
+    const activeGradient = isResolved ? resolvedGradient : defaultGradient;
 
     const computeRadiusAndBlur = (zoom: number) => {
       let scale = Math.pow(2, zoom - baseZoom);
@@ -40,9 +51,7 @@ export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
       maxZoom: 18, // Controla a intensidade baseada no zoom
       max: isLight ? 3 : 3.5,
       minOpacity: isLight ? 0.55 : 0.38,
-      gradient: isLight
-        ? { 0.1: '#f59e0b', 0.5: '#ea580c', 0.85: '#dc2626', 1.0: '#991b1b' }
-        : { 0.15: '#facc15', 0.55: '#f97316', 0.85: '#ef4444', 1.0: '#dc2626' },
+      gradient: activeGradient,
       ...options
     });
 
@@ -256,7 +265,7 @@ export function HeatmapLayer({ points, options }: HeatmapLayerProps) {
       map.off('moveend', handleMoveOrZoomEnd);
       map.removeLayer(heatLayer);
     };
-  }, [map, points, options, theme]);
+  }, [map, points, options, theme, isResolved]);
 
   return null;
 }

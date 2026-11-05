@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, Plus, Users, User, X, ChevronDown, MapPin, Trash2, Edit2, MoreVertical } from 'lucide-react';
+import { Search, Filter, Plus, Users, User, X, ChevronDown, MapPin, Trash2, Edit2, MoreVertical, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,10 +20,25 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Todos os Status' },
+  { value: 'RECEBIDA', label: 'Recebidas' },
+  { value: 'EM_ANDAMENTO', label: 'Em Andamento' },
+  { value: 'RESOLVIDA', label: 'Resolvidas' },
+];
+
 export function ServiceOrdersPanel() {
   const [serviceOrders, setServiceOrders] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
   const [selectedOS, setSelectedOS] = useState<any>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newOSData, setNewOSData] = useState({ category: '', description: '', address: '' });
@@ -41,17 +56,41 @@ export function ServiceOrdersPanel() {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
 
-  const fetchOSs = async () => {
-    setLoading(true);
+  const fetchOSs = useCallback(async (targetPage = 1, append = false, currentStatus = statusFilter, currentSearch = search) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     try {
-      const res = await api.get('/service-orders');
-      setServiceOrders(res.data);
+      const params: any = { page: targetPage, limit: 10 };
+      if (currentStatus && currentStatus !== 'all') params.status = currentStatus;
+      if (currentSearch && currentSearch.trim()) params.search = currentSearch.trim();
+
+      const res = await api.get('/service-orders', { params });
+      const data = res.data?.data ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+      const more = res.data?.hasMore ?? false;
+      const totalCount = res.data?.total ?? (Array.isArray(res.data) ? res.data.length : data.length);
+
+      if (append) {
+        setServiceOrders(prev => {
+          const ids = new Set(prev.map(o => o.id));
+          const newUnique = data.filter((item: any) => !ids.has(item.id));
+          return [...prev, ...newUnique];
+        });
+      } else {
+        setServiceOrders(data);
+      }
+      setPage(targetPage);
+      setHasMore(more);
+      setTotal(totalCount);
     } catch (e) {
-      console.error(e);
+      console.error('Erro ao carregar Ordens de Serviço:', e);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [statusFilter, search]);
 
   const fetchTeams = async () => {
     try {
@@ -63,7 +102,33 @@ export function ServiceOrdersPanel() {
   };
 
   useEffect(() => {
-    fetchOSs();
+    fetchOSs(1, false, statusFilter, search);
+  }, [statusFilter]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchOSs(1, false, statusFilter, search);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    if (!isFilterOpen) return;
+    const handleClickOutside = (e: MouseEvent | PointerEvent) => {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(e.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+    window.addEventListener('pointerdown', handleClickOutside, true);
+    return () => window.removeEventListener('pointerdown', handleClickOutside, true);
+  }, [isFilterOpen]);
+
+  const handleLoadMore = () => {
+    if (loadingMore || !hasMore) return;
+    fetchOSs(page + 1, true, statusFilter, search);
+  };
+
+  useEffect(() => {
     fetchTeams();
 
     if (pendingNewOS) {
@@ -252,9 +317,57 @@ export function ServiceOrdersPanel() {
       <div className="flex gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50 w-4 h-4" />
-          <Input placeholder="Buscar por protocolo..." className="pl-9 bg-black/5 dark:bg-white/5 border-foreground/10 rounded-xl" />
+          <Input 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por protocolo, endereço ou categoria..." 
+            className="pl-9 pr-8 bg-black/5 dark:bg-white/5 border-foreground/10 rounded-xl" 
+          />
+          {search && (
+            <button 
+              type="button"
+              onClick={() => setSearch('')} 
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground p-0.5"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
-        <Button variant="outline" className="rounded-xl border-foreground/10"><Filter size={18} className="mr-2" /> Filtros</Button>
+
+        <div className="relative" ref={filterMenuRef}>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsFilterOpen(prev => !prev)}
+            className={`rounded-xl border-foreground/10 transition-colors ${statusFilter !== 'all' ? 'border-primary text-primary bg-primary/10' : ''}`}
+          >
+            <Filter size={18} className="mr-2" />
+            {STATUS_OPTIONS.find(o => o.value === statusFilter)?.label || 'Filtros'}
+            <ChevronDown size={14} className={`ml-1.5 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+          </Button>
+
+          {isFilterOpen && (
+            <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-[#e1e4ea] dark:bg-[#18181b] border border-border/80 shadow-2xl p-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
+              {STATUS_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter(opt.value);
+                    setIsFilterOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-xl transition-colors ${
+                    statusFilter === opt.value
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'text-foreground/70 hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {statusFilter === opt.value && <Check size={14} />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 space-y-3">
@@ -353,6 +466,29 @@ export function ServiceOrdersPanel() {
               )}
             </div>
           ))
+        )}
+
+        {hasMore && !loading && (
+          <div className="pt-2 pb-4 flex justify-center">
+            <Button
+              variant="outline"
+              disabled={loadingMore}
+              onClick={handleLoadMore}
+              className="w-full py-5 rounded-2xl border-foreground/10 hover:border-primary/50 hover:bg-primary/5 text-sm font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              {loadingMore ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                  <span>Carregando mais ordens de serviço...</span>
+                </>
+              ) : (
+                <>
+                  <span>Mostrar mais</span>
+                  <span className="text-xs text-foreground/50 font-normal">({serviceOrders.length} de {total})</span>
+                </>
+              )}
+            </Button>
+          </div>
         )}
       </div>
 

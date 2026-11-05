@@ -42,11 +42,18 @@ const normalizeStatus = (value?: string) => {
   return upper || '';
 };
 
-const getIcon = (type?: string, isSelected?: boolean) => {
+const getIcon = (type?: string, isSelected?: boolean, isResolved?: boolean) => {
   const isOS = type === 'OS';
-  const color = isOS ? '#3b82f6' : '#f97316';
+  let color = isOS ? '#3b82f6' : '#f97316';
+  let ringColor = isOS ? 'rgba(59,130,246,0.35)' : 'rgba(249,115,22,0.35)';
+
+  if (isResolved) {
+    color = '#22c55e';
+    ringColor = 'rgba(34,197,94,0.4)';
+  }
+
   const size = isSelected ? 12 : 9;
-  const ring = isSelected ? `0 0 0 4px ${isOS ? 'rgba(59,130,246,0.35)' : 'rgba(249,115,22,0.35)'}, ` : '';
+  const ring = isSelected ? `0 0 0 4px ${ringColor}, ` : '';
   return L.divIcon({
     className: 'custom-map-icon',
     html: `<div style="width: ${size}px; height: ${size}px; background-color: ${color}; border: 1.5px solid white; border-radius: 50%; box-shadow: ${ring}0 0 4px rgba(0,0,0,0.4); transition: all 0.2s ease;"></div>`,
@@ -277,6 +284,25 @@ export function MapPage() {
     };
   }, []);
 
+  // Fechar dropdowns de filtros ao clicar fora (incluindo no mapa)
+  useEffect(() => {
+    const handleGlobalPointerDown = (e: MouseEvent | PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const isPopperOrTrigger = target.closest(
+        '[data-radix-popper-content-wrapper], [data-radix-select-viewport], [role="listbox"], button[role="combobox"]'
+      );
+      if (!isPopperOrTrigger) {
+        const openPopper = document.querySelector('[data-radix-popper-content-wrapper]');
+        if (openPopper) {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        }
+      }
+    };
+    window.addEventListener('pointerdown', handleGlobalPointerDown, true);
+    return () => window.removeEventListener('pointerdown', handleGlobalPointerDown, true);
+  }, []);
+
   const handleAddClick = () => {
     if (!user) {
       setShowAuthWarning(true);
@@ -461,7 +487,12 @@ export function MapPage() {
       >
         <OpenFreeMapLayer theme={theme} />
         
-        {typeFilter !== 'os' && !suppressHeatmapOnFocus && <HeatmapLayer points={heatmapData} />}
+        {typeFilter !== 'os' && !suppressHeatmapOnFocus && (
+          <HeatmapLayer 
+            points={heatmapData} 
+            isResolved={status === 'RESOLVIDA'}
+          />
+        )}
         
         <MapEventsTracker 
           addMode={addMode || osAddMode} 
@@ -473,20 +504,23 @@ export function MapPage() {
           <Marker position={selectedLocation} />
         )}
 
-        {!(addMode || osAddMode) && currentZoom >= 16 && filteredMapItems.map(comp => (
-          comp.latitude && comp.longitude && (
-            <Marker 
-              key={comp.id} 
-              position={[comp.latitude, comp.longitude]}
-              icon={getIcon(comp.type, selectedComplaint?.id === comp.id)}
-              eventHandlers={{
-                click: () => {
-                  focusOnPoint(comp);
-                }
-              }}
-            />
-          )
-        ))}
+        {!(addMode || osAddMode) && currentZoom >= 16 && filteredMapItems.map(comp => {
+          const isItemResolved = status === 'RESOLVIDA' || normalizeStatus(comp.status) === 'RESOLVIDA';
+          return (
+            comp.latitude && comp.longitude && (
+              <Marker 
+                key={comp.id} 
+                position={[comp.latitude, comp.longitude]}
+                icon={getIcon(comp.type, selectedComplaint?.id === comp.id, isItemResolved)}
+                eventHandlers={{
+                  click: () => {
+                    focusOnPoint(comp);
+                  }
+                }}
+              />
+            )
+          );
+        })}
       </MapContainer>
 
       {/* Modals & Overlays */}

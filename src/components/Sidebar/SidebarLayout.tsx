@@ -18,7 +18,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { Logo } from '@/shared/components/Logo';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +53,38 @@ export function SidebarLayout({
   const [lastOpenTab, setLastOpenTab] = useState<Exclude<SidebarTab, 'map'> | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const sidebarContainerRef = useRef<HTMLDivElement>(null);
+
+  // Fechar aba aberta e voltar para o mapa ao clicar fora do painel lateral
+  useEffect(() => {
+    if (activeTab === 'map') return;
+
+    const handleClickOutside = (e: MouseEvent | PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      // Se clicou dentro do próprio menu lateral ou do painel de conteúdo, não fecha
+      if (sidebarContainerRef.current && sidebarContainerRef.current.contains(target)) {
+        return;
+      }
+
+      // Ignora se o clique foi dentro de modais, diálogos, overlays ou dropdowns em portal
+      const isInsideModalOrPortal = target.closest(
+        '[role="dialog"], [role="alertdialog"], [data-radix-portal], [data-radix-popper-content-wrapper], .image-gallery-modal, .image-gallery-overlay'
+      );
+      if (isInsideModalOrPortal) {
+        return;
+      }
+
+      // Clicou fora (no mapa ou fundo): fecha e volta para o mapa
+      setActiveTab('map');
+    };
+
+    window.addEventListener('pointerdown', handleClickOutside, true);
+    return () => {
+      window.removeEventListener('pointerdown', handleClickOutside, true);
+    };
+  }, [activeTab]);
 
   useEffect(() => {
     const handleOpenOsTab = () => setActiveTab('os');
@@ -113,7 +145,7 @@ export function SidebarLayout({
   };
 
   return (
-    <div className="absolute top-4 left-4 bottom-4 z-50 flex items-start h-[calc(100vh-2rem)] pointer-events-none">
+    <div ref={sidebarContainerRef} className="absolute top-4 left-4 bottom-4 z-50 flex items-start h-[calc(100vh-2rem)] pointer-events-none">
 
       {/* Icon Strip (Far Left) */}
       <div
