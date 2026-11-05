@@ -463,11 +463,10 @@ export function MapPage() {
         <div className="absolute bottom-10 right-10 z-40 flex items-center gap-3 pointer-events-none">
           {!user && (
             <div className="flex items-center gap-2.5 pointer-events-auto animate-in fade-in slide-in-from-right-4 duration-500">
-              {/* Balão com aviso de denúncia pelo WhatsApp sem login */}
-              <div className="relative bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-2xl py-2 px-3.5 rounded-2xl flex items-center gap-2 text-xs font-semibold text-foreground">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+              {/* Balão esverdeado com aviso de denúncia pelo WhatsApp sem login */}
+              <div className="relative bg-[#e8f8f0] dark:bg-[#0d2a1d] border border-[#25D366]/35 shadow-2xl py-2 px-3.5 rounded-2xl flex items-center text-xs font-bold text-[#075E54] dark:text-[#25D366]">
                 <span className="whitespace-nowrap">Denuncie no WhatsApp sem login!</span>
-                <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-t border-r border-border/80 rotate-45" />
+                <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#e8f8f0] dark:bg-[#0d2a1d] border-t border-r border-[#25D366]/35 rotate-45" />
               </div>
 
               {/* Botão de WhatsApp */}
@@ -595,38 +594,38 @@ export function MapPage() {
               <AlertTriangle size={32} />
             </div>
             <h3 className="text-xl font-bold text-foreground mb-2">Login Necessário</h3>
-            <p className="text-foreground/70 text-sm mb-4">
+            <p className="text-foreground/70 text-sm mb-5">
               Para registrar denúncias diretamente pela plataforma web, você precisa entrar com sua conta de cidadão.
             </p>
 
-            {/* Alerta de Denúncia pelo WhatsApp sem Cadastro */}
-            <div className="w-full bg-green-500/10 border border-green-500/30 rounded-2xl p-4 mb-5 text-left flex flex-col gap-2.5">
-              <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold text-xs uppercase tracking-wider">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                Dica Rápida • Sem Cadastro
-              </div>
-              <p className="text-xs text-foreground/80 leading-relaxed">
-                Você pode registrar sua denúncia imediatamente pelo <b>WhatsApp do GeoLimp</b>, sem precisar criar senha ou fazer login!
-              </p>
-              <a
-                href="https://wa.me/559981718936?text=Ol%C3%A1%2C%20quero%20fazer%20uma%20den%C3%BAncia"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full mt-1 py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
-              >
-                <WhatsAppIcon size={18} />
-                Denunciar pelo WhatsApp
-              </a>
-            </div>
-
-            <div className="flex w-full gap-3">
-              <Button variant="ghost" className="flex-1" onClick={() => setShowAuthWarning(false)}>
+            <div className="flex w-full gap-3 mb-4">
+              <Button variant="ghost" className="flex-1 rounded-xl" onClick={() => setShowAuthWarning(false)}>
                 Cancelar
               </Button>
-              <Button className="flex-1" onClick={() => navigate('/login')}>
+              <Button className="flex-1 rounded-xl" onClick={() => navigate('/login')}>
                 Fazer Login
               </Button>
             </div>
+
+            {/* Divisor OU */}
+            <div className="relative flex items-center justify-center w-full my-1">
+              <div className="border-t border-foreground/15 w-full" />
+              <span className="bg-background/80 px-3 text-xs font-bold text-foreground/50 tracking-wider">
+                OU
+              </span>
+              <div className="border-t border-foreground/15 w-full" />
+            </div>
+
+            {/* Botão WhatsApp */}
+            <a
+              href="https://wa.me/559981718936?text=Ol%C3%A1%2C%20quero%20fazer%20uma%20den%C3%BAncia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full mt-3 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <WhatsAppIcon size={20} />
+              Denunciar pelo WhatsApp
+            </a>
           </div>
         </div>
       )}
