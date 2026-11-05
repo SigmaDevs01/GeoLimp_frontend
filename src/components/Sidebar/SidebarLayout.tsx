@@ -18,7 +18,9 @@ import {
   Shield,
 } from 'lucide-react';
 import { Logo } from '@/shared/components/Logo';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { api } from '@/lib/api';
+import { useSocketStore } from '@/store/useSocketStore';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +56,96 @@ export function SidebarLayout({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
+
+  // Estados para paginação de denúncias do Cidadão (10 iniciais + Ver mais)
+  const [citizenComplaints, setCitizenComplaints] = useState<any[]>([]);
+  const [citizenPage, setCitizenPage] = useState(1);
+  const [citizenHasMore, setCitizenHasMore] = useState(false);
+  const [citizenTotal, setCitizenTotal] = useState(0);
+  const [citizenLoading, setCitizenLoading] = useState(false);
+  const [citizenLoadingMore, setCitizenLoadingMore] = useState(false);
+  const { socket } = useSocketStore();
+
+  const fetchCitizenComplaints = useCallback(async (targetPage = 1, append = false) => {
+    if (!user || user.role !== 'cidadao') return;
+    if (append) {
+      setCitizenLoadingMore(true);
+    } else {
+      setCitizenLoading(true);
+    }
+    try {
+      const res = await api.get('/complaints/mine', { params: { page: targetPage, limit: 10 } });
+      const data = res.data?.data ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+      const more = res.data?.hasMore ?? false;
+      const totalCount = res.data?.total ?? (Array.isArray(res.data) ? res.data.length : data.length);
+
+      if (append) {
+        setCitizenComplaints(prev => {
+          const ids = new Set(prev.map(c => c.id));
+          const newUnique = data.filter((item: any) => !ids.has(item.id));
+          return [...prev, ...newUnique];
+        });
+      } else {
+        setCitizenComplaints(data);
+      }
+      setCitizenPage(targetPage);
+      setCitizenHasMore(more);
+      setCitizenTotal(totalCount);
+    } catch (e) {
+      console.error('Erro ao buscar denúncias do cidadão:', e);
+    } finally {
+      setCitizenLoading(false);
+      setCitizenLoadingMore(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.role === 'cidadao') {
+      fetchCitizenComplaints(1, false);
+    }
+  }, [fetchCitizenComplaints, user?.role]);
+
+  useEffect(() => {
+    if (user?.role === 'cidadao' && citizenPage === 1 && userComplaints.length > 0) {
+      fetchCitizenComplaints(1, false);
+    }
+  }, [userComplaints.length]);
+
+  useEffect(() => {
+    if (!socket || user?.role !== 'cidadao') return;
+
+    const handleNewItem = (item: any) => {
+      if (item.type === 'OS') return;
+      if (item.userId && item.userId !== user.id) return;
+      setCitizenComplaints(prev => {
+        if (prev.find(c => c.id === item.id)) return prev;
+        return [item, ...prev];
+      });
+      setCitizenTotal(prev => prev + 1);
+    };
+
+    const handleUpdateItem = (item: any) => {
+      if (item.type === 'OS') return;
+      setCitizenComplaints(prev =>
+        prev.map(c => (c.id === item.id ? { ...c, ...item } : c))
+      );
+    };
+
+    const handleDeleteItem = (item: { id: string; type: string }) => {
+      setCitizenComplaints(prev => prev.filter(c => c.id !== item.id));
+      setCitizenTotal(prev => Math.max(0, prev - 1));
+    };
+
+    socket.on('new_map_item', handleNewItem);
+    socket.on('update_map_item', handleUpdateItem);
+    socket.on('delete_map_item', handleDeleteItem);
+
+    return () => {
+      socket.off('new_map_item', handleNewItem);
+      socket.off('update_map_item', handleUpdateItem);
+      socket.off('delete_map_item', handleDeleteItem);
+    };
+  }, [socket, user]);
 
   // Fechar aba aberta e voltar para o mapa ao clicar fora do painel lateral
   useEffect(() => {
@@ -365,7 +457,14 @@ export function SidebarLayout({
           {displayTab === 'my-complaints' && user.role === 'cidadao' && (
             <div className="flex flex-col flex-1 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground">Minhas Denúncias</h2>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">Minhas Denúncias</h2>
+                  {citizenTotal > 0 && (
+                    <p className="text-[11px] text-foreground/50">
+                      Exibindo {citizenComplaints.length} de {citizenTotal}
+                    </p>
+                  )}
+                </div>
                 <Button
                   size="sm"
                   onClick={() => {
@@ -378,33 +477,66 @@ export function SidebarLayout({
                 </Button>
               </div>
               <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 space-y-3 custom-scrollbar">
-                {userComplaints.length === 0 ? (
+                {citizenLoading && citizenComplaints.length === 0 ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-foreground/50 gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+                    <span className="text-xs">Carregando denúncias...</span>
+                  </div>
+                ) : citizenComplaints.length === 0 ? (
                   <p className="text-sm text-foreground/60 dark:text-foreground/50">Você ainda não fez nenhuma denúncia.</p>
                 ) : (
-                  userComplaints.map(comp => (
-                    <div
-                      key={comp.id}
-                      onClick={() => {
-                        setActiveTab('map');
-                        onComplaintSelect(comp);
-                      }}
-                      className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all group"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs font-semibold text-primary uppercase tracking-wider truncate mr-2">{comp.category}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${(comp.status?.toUpperCase() === 'RESOLVIDA' || comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA') ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
-                          (comp.status?.toUpperCase() === 'EM_ANDAMENTO') ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400' :
-                            'bg-yellow-500/20 text-amber-700 dark:text-yellow-400'
-                          }`}>
-                          {(comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA'
-                            ? 'RESOLVIDA'
-                            : comp.status)?.replace('_', ' ')}
-                        </span>
+                  <>
+                    {citizenComplaints.map(comp => (
+                      <div
+                        key={comp.id}
+                        onClick={() => {
+                          setActiveTab('map');
+                          onComplaintSelect(comp);
+                        }}
+                        className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all group"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-xs font-semibold text-primary uppercase tracking-wider truncate mr-2">{comp.category}</span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${(comp.status?.toUpperCase() === 'RESOLVIDA' || comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA') ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
+                            (comp.status?.toUpperCase() === 'EM_ANDAMENTO') ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400' :
+                              'bg-yellow-500/20 text-amber-700 dark:text-yellow-400'
+                            }`}>
+                            {(comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA'
+                              ? 'RESOLVIDA'
+                              : comp.status)?.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground/90 font-medium line-clamp-1">{comp.address}</p>
+                        <p className="text-xs text-foreground/70 dark:text-foreground/60 mt-1 line-clamp-2">{comp.description}</p>
                       </div>
-                      <p className="text-sm text-foreground/90 font-medium line-clamp-1">{comp.address}</p>
-                      <p className="text-xs text-foreground/70 dark:text-foreground/60 mt-1 line-clamp-2">{comp.description}</p>
-                    </div>
-                  ))
+                    ))}
+
+                    {/* Botão Ver mais (Carregar mais 10) */}
+                    {citizenHasMore && (
+                      <div className="pt-2 pb-3 flex justify-center">
+                        <Button
+                          variant="outline"
+                          disabled={citizenLoadingMore}
+                          onClick={() => fetchCitizenComplaints(citizenPage + 1, true)}
+                          className="w-full py-4 rounded-xl border-foreground/10 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          {citizenLoadingMore ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-primary" />
+                              <span>Carregando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Ver mais</span>
+                              <span className="text-[10px] text-foreground/50 font-normal">
+                                ({citizenComplaints.length} de {citizenTotal})
+                              </span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
