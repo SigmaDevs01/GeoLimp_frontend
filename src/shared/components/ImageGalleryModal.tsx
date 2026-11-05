@@ -56,7 +56,7 @@ export function ImageGalleryModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[300] flex flex-col items-center justify-between bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200 pointer-events-auto select-none"
+      className="fixed inset-0 z-[300] flex flex-col items-center justify-between bg-black/90 p-4 animate-in fade-in duration-200 pointer-events-auto select-none"
       onClick={onClose}
     >
       {/* Top Bar: Title, Counter and Close Button */}
@@ -65,7 +65,7 @@ export function ImageGalleryModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-white/10 backdrop-blur-sm">
+          <div className="p-2 rounded-xl bg-white/10">
             <ImageIcon size={20} className="text-primary" />
           </div>
           <div>
@@ -98,7 +98,7 @@ export function ImageGalleryModal({
         {photos.length > 1 && (
           <button
             onClick={handlePrev}
-            className="absolute left-2 sm:left-4 z-20 p-2.5 sm:p-3 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white backdrop-blur-sm transition-all hover:scale-105 active:scale-95 border border-white/10"
+            className="absolute left-2 sm:left-4 z-20 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-black/90 text-white/90 hover:text-white transition-all hover:scale-105 active:scale-95 border border-white/10"
             title="Foto anterior (Seta esquerda)"
           >
             <ChevronLeft size={26} />
@@ -119,7 +119,7 @@ export function ImageGalleryModal({
         {photos.length > 1 && (
           <button
             onClick={handleNext}
-            className="absolute right-2 sm:right-4 z-20 p-2.5 sm:p-3 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white backdrop-blur-sm transition-all hover:scale-105 active:scale-95 border border-white/10"
+            className="absolute right-2 sm:right-4 z-20 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-black/90 text-white/90 hover:text-white transition-all hover:scale-105 active:scale-95 border border-white/10"
             title="Próxima foto (Seta direita)"
           >
             <ChevronRight size={26} />
