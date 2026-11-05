@@ -50,8 +50,8 @@ const normalizeStatus = (value?: string) => {
 
 const getIcon = (type?: string, isSelected?: boolean, isResolved?: boolean) => {
   const isOS = type === 'OS';
-  let color = isOS ? '#3b82f6' : '#f97316';
-  let ringColor = isOS ? 'rgba(59,130,246,0.35)' : 'rgba(249,115,22,0.35)';
+  let color = isOS ? '#3b82f6' : '#eab308';
+  let ringColor = isOS ? 'rgba(59,130,246,0.35)' : 'rgba(234,179,8,0.35)';
 
   if (isResolved) {
     color = '#22c55e';
@@ -533,13 +533,13 @@ export function MapPage() {
         )}
 
         {!(addMode || osAddMode) && currentZoom >= 16 && filteredMapItems.map(comp => {
-          const isItemResolved = status === 'RESOLVIDA' || normalizeStatus(comp.status) === 'RESOLVIDA';
+          const isFilterResolved = status === 'RESOLVIDA';
           return (
             comp.latitude && comp.longitude && (
               <Marker 
                 key={comp.id} 
                 position={[comp.latitude, comp.longitude]}
-                icon={getIcon(comp.type, selectedComplaint?.id === comp.id, isItemResolved)}
+                icon={getIcon(comp.type, selectedComplaint?.id === comp.id, isFilterResolved)}
                 eventHandlers={{
                   click: () => {
                     focusOnPoint(comp);
