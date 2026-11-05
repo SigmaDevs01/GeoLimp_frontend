@@ -8,11 +8,13 @@ interface User {
   email: string;
   phone?: string | null;
   role: 'root' | 'gestor' | 'gestor_operacional' | 'cidadao';
+  whatsappNotifications?: boolean;
 }
 
 interface AuthState {
   user: User | null;
   login: (user: User) => void;
+  updateUser: (partial: Partial<User>) => void;
   logout: () => void;
   init: () => void;
 }
@@ -24,6 +26,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     Cookies.set('user', JSON.stringify(user), { expires: 1 });
     Cookies.set('userRole', user.role, { expires: 1 });
     set({ user });
+  },
+
+  updateUser: (partial) => {
+    set((state) => {
+      if (!state.user) return state;
+      const updated = { ...state.user, ...partial };
+      Cookies.set('user', JSON.stringify(updated), { expires: 1 });
+      return { user: updated };
+    });
   },
   
   logout: async () => {

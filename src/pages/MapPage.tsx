@@ -29,6 +29,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
+const WhatsAppIcon = ({ size = 28 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.57 4.186 1.564 5.938l-1.564 5.714 5.86-1.537c1.705.932 3.666 1.465 5.753 1.465 6.627 0 12-5.373 12-12s-5.373-12-12-12z" />
+  </svg>
+);
+
 const DEFAULT_CENTER: [number, number] = [-5.5152, -47.4736];
 
 const normalizeStatus = (value?: string) => {
@@ -454,7 +460,29 @@ export function MapPage() {
 
       {/* Floating Action Button - For unlogged users and logged-in citizens */}
       {(!user || user.role === 'cidadao') && !addMode && !osAddMode && !selectedComplaint && (
-        <div className="absolute bottom-10 right-10 z-40 flex flex-col items-end gap-4 pointer-events-none">
+        <div className="absolute bottom-10 right-10 z-40 flex items-center gap-3 pointer-events-none">
+          {!user && (
+            <div className="flex items-center gap-2.5 pointer-events-auto animate-in fade-in slide-in-from-right-4 duration-500">
+              {/* Balão com aviso de denúncia pelo WhatsApp sem login */}
+              <div className="relative bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-2xl py-2 px-3.5 rounded-2xl flex items-center gap-2 text-xs font-semibold text-foreground">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+                <span className="whitespace-nowrap">Denuncie no WhatsApp sem login!</span>
+                <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-t border-r border-border/80 rotate-45" />
+              </div>
+
+              {/* Botão de WhatsApp */}
+              <a 
+                href="https://wa.me/559981718936?text=Ol%C3%A1%2C%20quero%20fazer%20uma%20den%C3%BAncia"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Fazer denúncia pelo WhatsApp sem login"
+                className="h-16 w-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-[#25D366] text-white hover:bg-[#20ba59] cursor-pointer"
+              >
+                <WhatsAppIcon size={32} />
+              </a>
+            </div>
+          )}
+
           <button 
             onClick={handleAddClick}
             title="Nova Denúncia"
@@ -567,9 +595,30 @@ export function MapPage() {
               <AlertTriangle size={32} />
             </div>
             <h3 className="text-xl font-bold text-foreground mb-2">Login Necessário</h3>
-            <p className="text-foreground/70 text-sm mb-6">
-              Para adicionar uma denúncia e ajudar a melhorar a cidade, você precisa criar uma conta ou fazer login.
+            <p className="text-foreground/70 text-sm mb-4">
+              Para registrar denúncias diretamente pela plataforma web, você precisa entrar com sua conta de cidadão.
             </p>
+
+            {/* Alerta de Denúncia pelo WhatsApp sem Cadastro */}
+            <div className="w-full bg-green-500/10 border border-green-500/30 rounded-2xl p-4 mb-5 text-left flex flex-col gap-2.5">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold text-xs uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                Dica Rápida • Sem Cadastro
+              </div>
+              <p className="text-xs text-foreground/80 leading-relaxed">
+                Você pode registrar sua denúncia imediatamente pelo <b>WhatsApp do GeoLimp</b>, sem precisar criar senha ou fazer login!
+              </p>
+              <a
+                href="https://wa.me/559981718936?text=Ol%C3%A1%2C%20quero%20fazer%20uma%20den%C3%BAncia"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full mt-1 py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
+              >
+                <WhatsAppIcon size={18} />
+                Denunciar pelo WhatsApp
+              </a>
+            </div>
+
             <div className="flex w-full gap-3">
               <Button variant="ghost" className="flex-1" onClick={() => setShowAuthWarning(false)}>
                 Cancelar

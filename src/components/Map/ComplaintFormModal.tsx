@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, MapPin, Upload, Camera, Loader2, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
+import { X, MapPin, Upload, Camera, Loader2, Image as ImageIcon, Plus, Trash2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
 import { VALID_CATEGORIES } from '@/shared/constants/categories';
 import { convertToWebP } from '@/shared/utils/image';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface ComplaintFormModalProps {
   onClose: () => void;
@@ -27,6 +28,7 @@ export function ComplaintFormModal({
   hidden,
   initialData
 }: ComplaintFormModalProps) {
+  const { user, updateUser } = useAuthStore();
   
   const [category, setCategory] = useState(initialData?.category || '');
   const [description, setDescription] = useState(initialData?.description || '');
@@ -38,6 +40,11 @@ export function ComplaintFormModal({
   const [loading, setLoading] = useState(false);
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [error, setError] = useState('');
+
+  // Pergunta sobre notificações no WhatsApp caso o usuário não tenha registrado ainda
+  const hasWhatsappNotifications = !!user?.whatsappNotifications;
+  const [wantWhatsappNotifications, setWantWhatsappNotifications] = useState(!hasWhatsappNotifications);
+  const [userPhone, setUserPhone] = useState(user?.phone || '');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +106,13 @@ export function ComplaintFormModal({
         photos: photos || [],
       };
 
+      if (wantWhatsappNotifications) {
+        payload.whatsappNotifications = true;
+        if (userPhone && userPhone.trim()) {
+          payload.phone = userPhone.trim();
+        }
+      }
+
       if (selectedLocation) {
         payload.latitude = selectedLocation[0];
         payload.longitude = selectedLocation[1];
@@ -109,6 +123,14 @@ export function ComplaintFormModal({
       } else {
         await api.post('/complaints', payload);
       }
+
+      if (wantWhatsappNotifications) {
+        updateUser({
+          whatsappNotifications: true,
+          ...(userPhone?.trim() ? { phone: userPhone.trim() } : {}),
+        });
+      }
+
       onSuccess();
     } catch (err: any) {
       setError(err.response?.data?.message || `Erro ao ${initialData?.id ? 'atualizar' : 'registrar'} denúncia.`);
@@ -181,42 +203,80 @@ export function ComplaintFormModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Descreva o problema com o máximo de detalhes possível..."
-                className="w-full bg-black/5 dark:bg-white/5 border border-foreground/10 text-foreground rounded-xl p-3 min-h-[90px] text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                rows={3}
+                className="w-full rounded-xl bg-black/5 dark:bg-white/5 border border-foreground/10 p-3 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary custom-scrollbar resize-none"
                 required
               />
             </div>
 
-            {/* Fotos (Opcional - Até 5 imagens) */}
+            {/* Perguntar sobre Notificações no WhatsApp se o usuário ainda não tiver registrado */}
+            {!hasWhatsappNotifications && (
+              <div className="p-3.5 rounded-xl bg-green-500/10 border border-green-500/25 space-y-2.5 transition-all">
+                <div className="flex items-start gap-2.5">
+                  <input 
+                    id="wantWhatsappCheck"
+                    type="checkbox"
+                    checked={wantWhatsappNotifications}
+                    onChange={(e) => setWantWhatsappNotifications(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-foreground/30 text-green-600 focus:ring-green-500 accent-green-600 cursor-pointer shrink-0"
+                  />
+                  <label htmlFor="wantWhatsappCheck" className="text-xs text-foreground/90 cursor-pointer select-none leading-relaxed">
+                    <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5 mb-0.5">
+                      <MessageCircle size={14} />
+                      Receber Notificações no WhatsApp
+                    </span>
+                    Desejo receber avisos em tempo real no meu WhatsApp quando o status desta e de outras denúncias for atualizado.
+                  </label>
+                </div>
+
+                {wantWhatsappNotifications && !user?.phone && (
+                  <div className="pt-1 pl-6">
+                    <label className="text-[11px] font-medium text-foreground/75 block mb-1">
+                      Seu número do WhatsApp:
+                    </label>
+                    <Input 
+                      type="tel"
+                      placeholder="(99) 98171-8936"
+                      value={userPhone}
+                      onChange={(e) => setUserPhone(e.target.value)}
+                      className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground h-9 rounded-lg text-xs max-w-xs"
+                      required={wantWhatsappNotifications}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Upload de Fotos (Até 5 fotos) */}
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="text-sm font-medium">Fotos (Opcional)</label>
-                <span className="text-xs text-foreground/50 font-medium">
-                  {photos.length} de 5 adicionada{photos.length === 1 ? '' : 's'}
-                </span>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Camera size={16} />
+                  <span>Fotos do Local</span>
+                </label>
+                <span className="text-xs text-foreground/50">{photos.length}/5 fotos</span>
               </div>
+              <p className="text-xs text-foreground/60 mb-2">
+                Envie até 5 fotos para ajudar as equipes a identificarem o problema.
+              </p>
 
               <input 
                 type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
                 accept="image/*" 
-                multiple
+                multiple 
                 className="hidden" 
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                disabled={photos.length >= 5 || isProcessingPhotos}
               />
-              
-              {/* Grid de Fotos e Botão de Adição */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
-                {photos.map((photo, index) => (
-                  <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-foreground/20 group">
-                    <img src={photo} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
-                    <span className="absolute top-1 left-1 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
-                      {index + 1}
-                    </span>
+
+              <div className="grid grid-cols-5 gap-2">
+                {photos.map((photo, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-foreground/10 group">
+                    <img src={photo} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
-                      onClick={() => removePhoto(index)}
-                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white hover:text-destructive"
+                      onClick={() => removePhoto(idx)}
+                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity cursor-pointer"
                       title="Remover foto"
                     >
                       <Trash2 size={18} />
