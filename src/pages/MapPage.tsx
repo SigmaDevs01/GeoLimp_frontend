@@ -445,16 +445,16 @@ export function MapPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button 
-              type="button"
-              onClick={toggleTheme}
-              className="glass-panel glass-blur h-10 w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm cursor-pointer"
-              title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-            >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            {!user && (
+          {!user && (
+            <div className="flex items-center gap-2">
+              <button 
+                type="button"
+                onClick={toggleTheme}
+                className="glass-panel glass-blur h-10 w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm cursor-pointer"
+                title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+              >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
               <button 
                 type="button"
                 onClick={() => navigate('/login')}
@@ -462,8 +462,8 @@ export function MapPage() {
               >
                 <User size={16} /> Entrar
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -473,17 +473,17 @@ export function MapPage() {
           <Logo showName className="h-7 w-auto text-foreground" />
         </div>
 
-        <div className="flex items-center gap-1.5 pointer-events-auto">
-          <button 
-            type="button"
-            onClick={toggleTheme}
-            className="glass-panel glass-blur h-8 w-8 rounded-full text-foreground/70 hover:text-foreground transition-colors flex items-center justify-center shadow-md cursor-pointer"
-            title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-            aria-label="Alternar tema"
-          >
-            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          </button>
-          {!user && (
+        {!user && (
+          <div className="flex items-center gap-1.5 pointer-events-auto">
+            <button 
+              type="button"
+              onClick={toggleTheme}
+              className="glass-panel glass-blur h-8 w-8 rounded-full text-foreground/70 hover:text-foreground transition-colors flex items-center justify-center shadow-md cursor-pointer"
+              title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+              aria-label="Alternar tema"
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
             <button 
               type="button"
               onClick={() => navigate('/login')}
@@ -491,13 +491,15 @@ export function MapPage() {
             >
               <User size={13} /> Entrar
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile Vertical Filter Column (md:hidden) */}
       {!isSidebarOpen && (
-        <div className="flex md:hidden absolute top-[46px] right-2.5 z-30 flex-col gap-1.5 items-end pointer-events-auto animate-in fade-in duration-200">
+        <div className={`flex md:hidden absolute right-2.5 z-30 flex-col gap-1.5 items-end pointer-events-auto animate-in fade-in duration-200 ${
+          user ? 'top-2.5' : 'top-[46px]'
+        }`}>
           {user && user.role !== 'cidadao' && (
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-md h-8 px-2.5 rounded-full text-[11px] font-medium w-[120px] focus:ring-0">

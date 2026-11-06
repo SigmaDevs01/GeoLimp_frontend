@@ -56,12 +56,19 @@ export function ImageGalleryModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[300] flex flex-col items-center justify-between bg-black/90 p-4 animate-in fade-in duration-200 pointer-events-auto select-none"
-      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      data-modal="true"
+      className="image-gallery-modal fixed inset-0 z-[300] flex flex-col items-center justify-between bg-black/90 p-4 animate-in fade-in duration-200 pointer-events-auto select-none"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       {/* Top Bar: Title, Counter and Close Button */}
       <div
         className="w-full flex items-center justify-between px-2 sm:px-6 py-2 text-white z-10"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">
@@ -92,6 +99,7 @@ export function ImageGalleryModal({
       {/* Main Image Area with Prev / Next Navigation */}
       <div
         className="relative flex-1 w-full max-w-5xl flex items-center justify-center my-2 overflow-hidden"
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Previous Button */}
@@ -131,6 +139,7 @@ export function ImageGalleryModal({
       {photos.length > 1 && (
         <div
           className="w-full max-w-xl flex items-center justify-center gap-2 px-4 py-2 overflow-x-auto custom-scrollbar z-10"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
           {photos.map((photo, idx) => (
