@@ -23,7 +23,8 @@ import { Logo } from '@/shared/components/Logo';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { useSocketStore } from '@/store/useSocketStore';
-import { formatPhoneDisplay } from '@/shared/utils/phone.utils';
+import { Input } from '@/components/ui/input';
+import { formatPhoneDisplay, maskPhone, normalizePhoneForApi } from '@/shared/utils/phone.utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,7 +52,7 @@ export function SidebarLayout({
   onAddComplaint?: () => void;
   userComplaints?: any[];
 }) {
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
 
   const [activeTab, setActiveTab] = useState<SidebarTab>('map');
@@ -61,6 +62,33 @@ export function SidebarLayout({
   const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
+
+  // Estados para edição rápida de telefone em Ajustes
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
+
+  const handleSavePhone = async () => {
+    if (!phoneInput.trim()) return;
+    setSavingPhone(true);
+    try {
+      const normalized = normalizePhoneForApi(phoneInput.trim());
+      await api.patch('/users/me/whatsapp-notifications', {
+        whatsappNotifications: true,
+        phone: normalized,
+      });
+      updateUser({
+        phone: normalized,
+        whatsappNotifications: true,
+      });
+      setIsEditingPhone(false);
+    } catch (err: any) {
+      console.error('Erro ao atualizar telefone:', err);
+      alert(err.response?.data?.message || 'Erro ao atualizar telefone. Tente novamente.');
+    } finally {
+      setSavingPhone(false);
+    }
+  };
 
   // Estados para paginação de denúncias do Cidadão (10 iniciais + Ver mais)
   const [citizenComplaints, setCitizenComplaints] = useState<any[]>([]);
@@ -325,17 +353,65 @@ export function SidebarLayout({
                     </div>
                   </div>
 
-                  {user.phone && (
-                    <div className="flex items-start gap-2">
-                      <Phone size={14} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">Telefone</span>
-                        <span className="text-foreground font-medium text-xs break-words">
-                          {formatPhoneDisplay(user.phone)}
+                  <div className="flex items-start gap-2">
+                    <Phone size={14} className="text-foreground/50 dark:text-foreground/40 mt-1 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">
+                          Telefone / WhatsApp
                         </span>
+                        {!isEditingPhone && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsEditingPhone(true);
+                              setPhoneInput(user.phone ? formatPhoneDisplay(user.phone) : '');
+                            }}
+                            className="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                          >
+                            {user.phone ? 'Editar' : 'Adicionar'}
+                          </button>
+                        )}
                       </div>
+                      {isEditingPhone ? (
+                        <div className="mt-1.5 space-y-2">
+                          <Input
+                            type="tel"
+                            placeholder="(99) 98503-9425"
+                            value={phoneInput}
+                            onChange={(e) => setPhoneInput(maskPhone(e.target.value))}
+                            className="h-8 text-xs rounded-xl bg-black/5 dark:bg-white/5 border-foreground/15"
+                            autoFocus
+                          />
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={savingPhone}
+                              onClick={() => setIsEditingPhone(false)}
+                              className="h-7 px-2 text-[11px] rounded-lg"
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              disabled={savingPhone || !phoneInput.trim()}
+                              onClick={handleSavePhone}
+                              className="h-7 px-2.5 text-[11px] rounded-lg"
+                            >
+                              {savingPhone ? 'Salvando...' : 'Salvar'}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-foreground font-medium text-xs break-words">
+                          {user.phone ? formatPhoneDisplay(user.phone) : 'Não informado'}
+                        </span>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   <div className="flex items-start gap-2">
                     <Shield size={14} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />

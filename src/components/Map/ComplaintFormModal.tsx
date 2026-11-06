@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/lib/api';
 import { VALID_CATEGORIES } from '@/shared/constants/categories';
 import { convertToWebP } from '@/shared/utils/image';
-import { maskPhone, normalizePhoneForApi } from '@/shared/utils/phone.utils';
+import { maskPhone, normalizePhoneForApi, formatPhoneDisplay } from '@/shared/utils/phone.utils';
 import { useAuthStore } from '@/store/useAuthStore';
 
 interface ComplaintFormModalProps {
@@ -42,10 +42,13 @@ export function ComplaintFormModal({
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [error, setError] = useState('');
 
-  // Pergunta sobre notificações no WhatsApp caso o usuário não tenha registrado ainda
-  const hasWhatsappNotifications = !!user?.whatsappNotifications;
-  const [wantWhatsappNotifications, setWantWhatsappNotifications] = useState(!hasWhatsappNotifications);
-  const [userPhone, setUserPhone] = useState(user?.phone || '');
+  // Pergunta sobre notificações no WhatsApp
+  const [wantWhatsappNotifications, setWantWhatsappNotifications] = useState(
+    user?.whatsappNotifications ?? true
+  );
+  const [userPhone, setUserPhone] = useState(
+    user?.phone ? formatPhoneDisplay(user.phone) : ''
+  );
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -210,51 +213,49 @@ export function ComplaintFormModal({
               />
             </div>
 
-            {/* Perguntar sobre Notificações no WhatsApp se o usuário ainda não tiver registrado */}
-            {!hasWhatsappNotifications && (
-              <div className="p-3.5 rounded-xl bg-green-500/10 border border-green-500/25 space-y-2.5 transition-all">
-                <div className="flex items-start gap-2.5">
-                  <input 
-                    id="wantWhatsappCheck"
-                    type="checkbox"
-                    checked={wantWhatsappNotifications}
-                    onChange={(e) => setWantWhatsappNotifications(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-foreground/30 text-green-600 focus:ring-green-500 accent-green-600 cursor-pointer shrink-0"
-                  />
-                  <label htmlFor="wantWhatsappCheck" className="text-xs text-foreground/90 cursor-pointer select-none leading-relaxed">
-                    <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5 mb-0.5">
-                      <MessageCircle size={14} />
-                      Receber Notificações no WhatsApp
-                    </span>
-                    Desejo receber avisos em tempo real no meu WhatsApp quando o status desta e de outras denúncias for atualizado.
-                  </label>
-                </div>
-
-                {wantWhatsappNotifications && !user?.phone && (
-                  <div className="pt-1 pl-6">
-                    <label className="text-[11px] font-medium text-foreground/75 block mb-1">
-                      Seu número do WhatsApp:
-                    </label>
-                    <Input 
-                      type="tel"
-                      placeholder="(99) 98171-8936"
-                      value={userPhone}
-                      onChange={(e) => setUserPhone(maskPhone(e.target.value))}
-                      onBlur={() => {
-                        if (userPhone) {
-                          const norm = normalizePhoneForApi(userPhone);
-                          if (norm) {
-                            setUserPhone(maskPhone(norm.startsWith('55') ? norm.slice(2) : norm));
-                          }
-                        }
-                      }}
-                      className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground h-9 rounded-lg text-xs max-w-xs"
-                      required={wantWhatsappNotifications}
-                    />
-                  </div>
-                )}
+            {/* Notificações no WhatsApp */}
+            <div className="p-3.5 rounded-xl bg-green-500/10 border border-green-500/25 space-y-2.5 transition-all">
+              <div className="flex items-start gap-2.5">
+                <input 
+                  id="wantWhatsappCheck"
+                  type="checkbox"
+                  checked={wantWhatsappNotifications}
+                  onChange={(e) => setWantWhatsappNotifications(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-foreground/30 text-green-600 focus:ring-green-500 accent-green-600 cursor-pointer shrink-0"
+                />
+                <label htmlFor="wantWhatsappCheck" className="text-xs text-foreground/90 cursor-pointer select-none leading-relaxed">
+                  <span className="font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5 mb-0.5">
+                    <MessageCircle size={14} />
+                    Receber Notificações no WhatsApp
+                  </span>
+                  Desejo receber avisos em tempo real no meu WhatsApp quando o status desta e de outras denúncias for atualizado.
+                </label>
               </div>
-            )}
+
+              {wantWhatsappNotifications && (
+                <div className="pt-1 pl-6">
+                  <label className="text-[11px] font-medium text-foreground/75 block mb-1">
+                    Seu número do WhatsApp:
+                  </label>
+                  <Input 
+                    type="tel"
+                    placeholder="(99) 98503-9425"
+                    value={userPhone}
+                    onChange={(e) => setUserPhone(maskPhone(e.target.value))}
+                    onBlur={() => {
+                      if (userPhone) {
+                        const norm = normalizePhoneForApi(userPhone);
+                        if (norm) {
+                          setUserPhone(maskPhone(norm.startsWith('55') ? norm.slice(2) : norm));
+                        }
+                      }
+                    }}
+                    className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground h-9 rounded-lg text-xs max-w-xs"
+                    required={wantWhatsappNotifications}
+                  />
+                </div>
+              )}
+            </div>
 
             {/* Upload de Fotos (Até 5 fotos) */}
             <div>
