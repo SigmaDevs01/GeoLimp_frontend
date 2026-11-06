@@ -102,24 +102,26 @@ export function ManagersPanel() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => handleOpenEdit(manager)}
-                  className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 px-2.5 rounded-lg text-foreground/75 hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 text-xs font-medium"
                 >
                   Editar
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setManagerToDelete(manager)}
-                  className="rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  title="Excluir"
-                >
-                  <Trash2 size={16} />
-                </Button>
+                {manager.role !== 'ROOT' && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setManagerToDelete(manager)}
+                    className="h-8 w-8 p-0 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    title="Excluir Gestor"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                )}
               </div>
             </div>
           ))
@@ -141,9 +143,12 @@ export function ManagersPanel() {
       <AlertDialog open={!!managerToDelete} onOpenChange={(open) => !open && setManagerToDelete(null)}>
         <AlertDialogContent className="z-[150] max-w-sm rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Gestor</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o gestor <b>{managerToDelete?.name}</b>? Essa ação não pode ser desfeita.
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 size={18} />
+              <span>Excluir Gestor</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm text-foreground/75 pt-1">
+              Tem certeza que deseja excluir o gestor <b>{managerToDelete?.name}</b>? O acesso deste usuário ao painel será revogado permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

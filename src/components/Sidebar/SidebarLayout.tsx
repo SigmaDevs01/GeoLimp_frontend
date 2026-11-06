@@ -390,39 +390,19 @@ export function SidebarLayout({
               </button>
             </div>
 
-            {/* Privacidade e LGPD */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
-                Privacidade &amp; LGPD
-              </span>
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-2.5">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0 mt-0.5">
-                    <Trash2 size={16} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-xs sm:text-sm font-semibold text-foreground">
-                      Excluir Conta (LGPD)
-                    </h4>
-                    <p className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 mt-0.5 leading-relaxed">
-                      Apague seus dados pessoais do servidor. Suas denúncias serão preservadas de forma 100% anônima para a continuidade do atendimento público.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDeleteAccountConfirm(true)}
-                    className="w-full h-8 sm:h-9 text-xs font-semibold rounded-xl border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:border-red-500 transition-colors"
-                  >
-                    <Trash2 size={13} className="mr-1.5" /> Excluir Minha Conta
-                  </Button>
-                </div>
+            {/* Excluir Conta (apenas cidadão pode auto-excluir; gestores são gerenciados pelo admin) */}
+            {user.role === 'cidadao' && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteAccountConfirm(true)}
+                  className="w-full h-9 sm:h-11 px-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-red-500/10 text-foreground/75 hover:text-red-600 dark:hover:text-red-400 border border-foreground/10 hover:border-red-500/30 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Trash2 size={16} />
+                  <span>Excluir minha conta</span>
+                </button>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Botão de Sair */}
@@ -827,25 +807,20 @@ export function SidebarLayout({
           if (!isDeletingAccount) setShowDeleteAccountConfirm(open);
         }}
       >
-        <AlertDialogContent className="z-[110] max-w-sm sm:max-w-md rounded-2xl">
+        <AlertDialogContent className="z-[110] max-w-sm rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive flex items-center gap-2">
               <Trash2 size={18} />
-              <span>Excluir Conta (LGPD)</span>
+              <span>Excluir minha conta</span>
             </AlertDialogTitle>
-            <div className="text-xs sm:text-sm text-foreground/80 space-y-2.5 pt-2">
+            <AlertDialogDescription className="text-xs sm:text-sm text-foreground/75 space-y-2 pt-2">
               <p>
                 Tem certeza de que deseja excluir sua conta? Esta ação é <b>permanente e irreversível</b>.
               </p>
-              <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-1.5 text-[11px] sm:text-xs">
-                <p>
-                  • <b>Dados pessoais removidos:</b> seu nome, e-mail, telefone, senha e notificações serão completamente deletados do servidor.
-                </p>
-                <p>
-                  • <b>Denúncias preservadas:</b> suas denúncias feitas permanecerão arquivadas para os serviços públicos municipais de forma <b>100% anônima</b>.
-                </p>
-              </div>
-            </div>
+              <p>
+                Seus dados cadastrais serão removidos do servidor, e suas denúncias serão preservadas de forma anônima para a continuidade do atendimento público.
+              </p>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
             <AlertDialogCancel disabled={isDeletingAccount} className="rounded-xl">
