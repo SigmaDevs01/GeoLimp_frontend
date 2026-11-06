@@ -308,24 +308,38 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
                     ) : null}
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-foreground/10">
+                    <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-foreground/10">
                       {selectedComplaint.photos && selectedComplaint.photos.length > 0 && (
-                        <Button variant="outline" size="sm" className="rounded-lg" onClick={() => setShowImage(true)}>
-                          <ImageIcon size={16} className="mr-2" />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg" 
+                          onClick={() => setShowImage(true)}
+                        >
+                          <ImageIcon size={14} className="mr-1.5" />
                           {selectedComplaint.photos.length > 1 ? `Fotos (${selectedComplaint.photos.length})` : 'Foto'}
                         </Button>
                       )}
                       
-                      <Button variant="secondary" size="sm" className="rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20" onClick={() => {
-                        window.dispatchEvent(new CustomEvent('open-map-tab'));
-                        onComplaintSelect?.(selectedComplaint);
-                      }}>
-                        <Map size={16} className="mr-2" />
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20" 
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('open-map-tab'));
+                          onComplaintSelect?.(selectedComplaint);
+                        }}
+                      >
+                        <Map size={14} className="mr-1.5" />
                         Ver no mapa
                       </Button>
 
                       {selectedComplaint.serviceOrderProtocol && (
-                        <Button onClick={() => handleViewOS(selectedComplaint.serviceOrderProtocol)} size="sm" className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
+                        <Button 
+                          onClick={() => handleViewOS(selectedComplaint.serviceOrderProtocol)} 
+                          size="sm" 
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+                        >
                           Ver OS
                         </Button>
                       )}

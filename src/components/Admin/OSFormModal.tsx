@@ -63,8 +63,20 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
   );
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-6 pointer-events-auto">
-      <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95">
+    <div 
+      role="dialog" 
+      aria-modal="true" 
+      data-modal="true"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()} 
+        className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200"
+      >
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold">{initialData?.id ? 'Editar OS' : 'Nova OS'}</h3>
           <button onClick={onClose} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>

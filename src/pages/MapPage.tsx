@@ -386,7 +386,7 @@ export function MapPage() {
 
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-background font-sans">
+    <div className="fixed inset-0 w-full h-full h-dvh max-h-dvh overflow-hidden bg-background font-sans overscroll-none select-none">
       
       {user && (
         <SidebarLayout 
@@ -445,22 +445,25 @@ export function MapPage() {
             </Select>
           </div>
 
-          {!user && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <button 
+              type="button"
+              onClick={toggleTheme}
+              className="glass-panel glass-blur h-10 w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm cursor-pointer"
+              title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            {!user && (
               <button 
-                onClick={toggleTheme}
-                className="glass-panel glass-blur h-10 w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm"
-              >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
-              <button 
+                type="button"
                 onClick={() => navigate('/login')}
-                className="glass-panel glass-blur h-10 px-6 rounded-full text-sm font-medium hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-2 pointer-events-auto"
+                className="glass-panel glass-blur h-10 px-6 rounded-full text-sm font-medium hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-2 pointer-events-auto cursor-pointer"
               >
                 <User size={16} /> Entrar
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -470,28 +473,31 @@ export function MapPage() {
           <Logo showName className="h-7 w-auto text-foreground" />
         </div>
 
-        {!user && (
-          <div className="flex items-center gap-1.5 pointer-events-auto">
+        <div className="flex items-center gap-1.5 pointer-events-auto">
+          <button 
+            type="button"
+            onClick={toggleTheme}
+            className="glass-panel glass-blur h-8 w-8 rounded-full text-foreground/70 hover:text-foreground transition-colors flex items-center justify-center shadow-md cursor-pointer"
+            title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+            aria-label="Alternar tema"
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+          {!user && (
             <button 
-              onClick={toggleTheme}
-              className="glass-panel glass-blur h-8 w-8 rounded-full text-foreground/70 hover:text-foreground transition-colors flex items-center justify-center shadow-md"
-              title="Alternar tema"
-            >
-              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-            </button>
-            <button 
+              type="button"
               onClick={() => navigate('/login')}
-              className="glass-panel glass-blur h-8 px-3 rounded-full text-xs font-semibold hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-1 shadow-md"
+              className="glass-panel glass-blur h-8 px-3 rounded-full text-xs font-semibold hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-1 shadow-md cursor-pointer"
             >
               <User size={13} /> Entrar
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Mobile Vertical Filter Column (md:hidden) */}
       {!isSidebarOpen && (
-        <div className="flex md:hidden absolute top-[54px] right-2.5 z-30 flex-col gap-1.5 items-end pointer-events-auto animate-in fade-in duration-200">
+        <div className="flex md:hidden absolute top-[46px] right-2.5 z-30 flex-col gap-1.5 items-end pointer-events-auto animate-in fade-in duration-200">
           {user && user.role !== 'cidadao' && (
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-md h-8 px-2.5 rounded-full text-[11px] font-medium w-[120px] focus:ring-0">
@@ -536,8 +542,8 @@ export function MapPage() {
       {(!user || user.role === 'cidadao') && !addMode && !osAddMode && !selectedComplaint && !isSidebarOpen && (
         <div className={`absolute z-40 flex items-center gap-2 sm:gap-3 pointer-events-none transition-all ${
           user 
-            ? 'bottom-20 right-4 sm:bottom-10 sm:right-10' 
-            : 'bottom-6 right-4 sm:bottom-10 sm:right-10'
+            ? 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-10 sm:right-10' 
+            : 'bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-10 sm:right-10'
         }`}>
           {!user && (
             <div className="flex items-center gap-2 pointer-events-auto animate-in fade-in slide-in-from-right-4 duration-500">
@@ -611,7 +617,12 @@ export function MapPage() {
           <Marker position={selectedLocation} />
         )}
 
-        {!(addMode || osAddMode) && currentZoom >= 16 && filteredMapItems.map(comp => {
+        {!(addMode || osAddMode) && filteredMapItems.map(comp => {
+          // Se o filtro selecionado for OS ou o item for uma OS, mantém os pins visíveis em qualquer nível de zoom!
+          // Para denúncias, exibe os pins a partir do zoom 16 (pois denúncias utilizam o heatmap nos zooms mais distantes)
+          const isOS = typeFilter === 'os' || comp.type === 'OS';
+          if (!isOS && currentZoom < 16) return null;
+
           const isFilterResolved = status === 'RESOLVIDA';
           return (
             comp.latitude && comp.longitude && (

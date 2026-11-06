@@ -77,8 +77,20 @@ export function ManagerFormModal({ initialData, onClose, onSuccess }: ManagerFor
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
-      <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
+    <div 
+      role="dialog"
+      aria-modal="true"
+      data-modal="true"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200"
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{initialData ? 'Editar Gestor' : 'Novo Gestor'}</h2>
           <button 

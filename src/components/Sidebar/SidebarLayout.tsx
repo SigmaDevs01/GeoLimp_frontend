@@ -156,6 +156,14 @@ export function SidebarLayout({
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
+      // Se há qualquer modal/diálogo aberto no documento, não fecha a aba lateral
+      const hasActiveModal = Boolean(
+        document.querySelector('[role="dialog"], [role="alertdialog"], [data-modal="true"], .image-gallery-modal, .image-gallery-overlay')
+      );
+      if (hasActiveModal) {
+        return;
+      }
+
       // Se clicou dentro do próprio menu lateral ou do painel de conteúdo, não fecha
       if (sidebarContainerRef.current && sidebarContainerRef.current.contains(target)) {
         return;
@@ -163,7 +171,7 @@ export function SidebarLayout({
 
       // Ignora se o clique foi dentro de modais, diálogos, overlays ou dropdowns em portal
       const isInsideModalOrPortal = target.closest(
-        '[role="dialog"], [role="alertdialog"], [data-radix-portal], [data-radix-popper-content-wrapper], .image-gallery-modal, .image-gallery-overlay'
+        '[role="dialog"], [role="alertdialog"], [data-radix-portal], [data-radix-popper-content-wrapper], [data-modal="true"], [data-portal="true"], .image-gallery-modal, .image-gallery-overlay'
       );
       if (isInsideModalOrPortal) {
         return;
@@ -350,13 +358,13 @@ export function SidebarLayout({
                 <div
                   role="switch"
                   aria-checked={theme === 'dark'}
-                  className={`w-10 sm:w-11 h-5.5 sm:h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 flex items-center ${
+                  className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 flex items-center ${
                     theme === 'dark' ? 'bg-emerald-500' : 'bg-black/25 dark:bg-white/20'
                   }`}
                 >
                   <div
-                    className={`w-4.5 sm:w-5 h-4.5 sm:h-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
-                      theme === 'dark' ? 'translate-x-4.5 sm:translate-x-5' : 'translate-x-0'
+                    className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
+                      theme === 'dark' ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </div>

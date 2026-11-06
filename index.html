@@ -1,12 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>GeoLimp</title>
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('geolimp-theme-storage');
+          if (saved) {
+            var parsed = JSON.parse(saved);
+            var t = parsed.state && parsed.state.theme;
+            if (t === 'light') {
+              document.documentElement.classList.remove('dark');
+              document.documentElement.classList.add('light');
+              return;
+            }
+          }
+        } catch(e) {}
+        document.documentElement.classList.add('dark');
+      })();
+    </script>
   </head>
-  <body>
+  <body class="overscroll-none select-none">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

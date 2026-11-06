@@ -435,30 +435,52 @@ export function ServiceOrdersPanel() {
                       </div>
                     )}
 
-                    <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t border-foreground/10">
-                      <Button variant="secondary" size="sm" className="rounded-lg bg-black/10 dark:bg-white/10 hover:bg-destructive hover:text-destructive-foreground text-foreground transition-colors" onClick={() => setOsToDelete(selectedOS)}>
-                        <Trash2 size={16} className="mr-2" /> Excluir
+                    <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-foreground/10">
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-black/10 dark:bg-white/10 hover:bg-destructive hover:text-destructive-foreground text-foreground transition-colors" 
+                        onClick={() => setOsToDelete(selectedOS)}
+                      >
+                        <Trash2 size={14} className="mr-1.5" /> Excluir
                       </Button>
 
                       {!selectedOS.complaintId && (
-                        <Button variant="secondary" size="sm" className="rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground transition-colors" onClick={() => setOsToEdit(selectedOS)}>
-                          <Edit2 size={16} className="mr-2" /> Editar
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground transition-colors" 
+                          onClick={() => setOsToEdit(selectedOS)}
+                        >
+                          <Edit2 size={14} className="mr-1.5" /> Editar
                         </Button>
                       )}
 
                       {(selectedOS.status === 'PENDENTE' || selectedOS.status === 'RECEBIDA') && (
-                        <Button onClick={() => setAssigningOS(selectedOS)} size="sm" className="rounded-lg">Atribuir Equipe</Button>
+                        <Button 
+                          onClick={() => setAssigningOS(selectedOS)} 
+                          size="sm" 
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg"
+                        >
+                          Atribuir Equipe
+                        </Button>
                       )}
                       
                       {selectedOS.status === 'EM_ANDAMENTO' && (
-                        <Button onClick={() => setCompletingOS(selectedOS)} size="sm" className="rounded-lg bg-green-600 hover:bg-green-700 text-white">Concluir Serviço</Button>
+                        <Button 
+                          onClick={() => setCompletingOS(selectedOS)} 
+                          size="sm" 
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Concluir Serviço
+                        </Button>
                       )}
 
                       {selectedOS.complaint?.protocol && (
                         <Button
                           onClick={() => handleViewComplaint(selectedOS.complaint.protocol)}
                           size="sm"
-                          className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
                         >
                           Ver Denúncia
                         </Button>
@@ -509,6 +531,10 @@ export function ServiceOrdersPanel() {
       {/* Modal Atribuir Equipe */}
       {assigningOS && createPortal(
         <div
+          role="dialog"
+          aria-modal="true"
+          data-modal="true"
+          onPointerDown={e => e.stopPropagation()}
           className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
           onClick={() => {
             setAssigningOS(null);
@@ -566,6 +592,10 @@ export function ServiceOrdersPanel() {
       {/* Modal Confirmar Conclusão */}
       {completingOS && createPortal(
         <div
+          role="dialog"
+          aria-modal="true"
+          data-modal="true"
+          onPointerDown={e => e.stopPropagation()}
           className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
           onClick={() => setCompletingOS(null)}
         >
@@ -599,6 +629,10 @@ export function ServiceOrdersPanel() {
       {/* Modal Membros da Equipe */}
       {viewingTeam && createPortal(
         <div
+          role="dialog"
+          aria-modal="true"
+          data-modal="true"
+          onPointerDown={e => e.stopPropagation()}
           className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
           onClick={() => setViewingTeam(null)}
         >

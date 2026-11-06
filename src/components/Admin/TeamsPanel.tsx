@@ -173,8 +173,15 @@ export function TeamsPanel() {
 
       {/* Modal Nova Equipe */}
       {isCreatingTeam && createPortal(
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          data-modal="true"
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { if (e.target === e.currentTarget) setIsCreatingTeam(false); }}
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200"
+        >
+          <div onClick={e => e.stopPropagation()} className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Criar Nova Equipe</h3>
               <button onClick={() => setIsCreatingTeam(false)} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
@@ -197,8 +204,15 @@ export function TeamsPanel() {
 
       {/* Modal Editar Equipe */}
       {editingTeam && createPortal(
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          data-modal="true"
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { if (e.target === e.currentTarget) setEditingTeam(null); }}
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200"
+        >
+          <div onClick={e => e.stopPropagation()} className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Editar Equipe</h3>
               <button onClick={() => setEditingTeam(null)} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
@@ -221,8 +235,15 @@ export function TeamsPanel() {
 
       {/* Modal Ver Membros */}
       {selectedTeamId && createPortal(
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200">
-          <div className="bg-background p-6 rounded-2xl w-full max-w-lg shadow-2xl border border-foreground/10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          data-modal="true"
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { if (e.target === e.currentTarget) { setSelectedTeamId(null); setIsCreatingMember(false); setEditingMember(null); } }}
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-6 pointer-events-auto animate-in fade-in duration-200"
+        >
+          <div onClick={e => e.stopPropagation()} className="bg-background p-6 rounded-2xl w-full max-w-lg shadow-2xl border border-foreground/10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold flex items-center gap-2"><Users size={20} className="text-primary" /> Membros da Equipe</h3>
               <button onClick={() => { setSelectedTeamId(null); setIsCreatingMember(false); setEditingMember(null); }} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
