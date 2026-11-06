@@ -73,8 +73,8 @@ export function BottomDetailCard({ complaint, onClose }: BottomDetailCardProps) 
                   {complaint.category}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 text-white shadow-sm ${complaint.type === 'OS' ? 'bg-blue-500' : 'bg-orange-500'}`}>
-                    {complaint.type === 'OS' ? 'OS' : 'Denúncia'}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 text-white shadow-sm ${complaint.type === 'OS' ? (complaint.complaintId || complaint.complaint ? 'bg-blue-600' : 'bg-purple-600') : 'bg-orange-500'}`}>
+                    {complaint.type === 'OS' ? (complaint.complaintId || complaint.complaint ? 'OS' : 'OS Avulsa') : 'Denúncia'}
                   </span>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider shrink-0 ${
                     complaint.status?.toUpperCase() === 'RESOLVIDA' || complaint.status?.toUpperCase() === 'RESOLVIDO' || complaint.status?.toUpperCase() === 'CONCLUIDA' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
@@ -115,11 +115,19 @@ export function BottomDetailCard({ complaint, onClose }: BottomDetailCardProps) 
                       <span className="font-mono text-primary font-bold">{complaint.serviceOrderProtocol}</span>
                     </div>
                   )}
-                  {complaint.type === 'OS' && complaint.complaint?.protocol && (
-                    <div className="flex items-center gap-1.5 text-[10px] font-medium">
-                      <span className="text-foreground/50 uppercase tracking-wider font-semibold">DEN:</span>
-                      <span className="font-mono text-primary font-bold">{complaint.complaint.protocol}</span>
-                    </div>
+                  {complaint.type === 'OS' && (
+                    complaint.complaint?.protocol ? (
+                      <div className="flex items-center gap-1.5 text-[10px] font-medium">
+                        <span className="text-foreground/50 uppercase tracking-wider font-semibold">DEN:</span>
+                        <span className="font-mono text-primary font-bold">{complaint.complaint.protocol}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-[10px] font-medium text-purple-600 dark:text-purple-400">
+                        <span className="font-semibold uppercase tracking-wider text-[9px] bg-purple-500/15 px-1.5 py-0.5 rounded-full border border-purple-500/30">
+                          OS Avulsa (Gestão)
+                        </span>
+                      </div>
+                    )
                   )}
                 </div>
                 

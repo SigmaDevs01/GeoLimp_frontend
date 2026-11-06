@@ -382,7 +382,7 @@ export function ServiceOrdersPanel() {
             <div id={`os-card-${os.id}`} key={os.id} className="rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 transition-all flex flex-col overflow-hidden">
               <div onClick={() => toggleDetails(os.id)} className="p-3.5 sm:p-5 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                 <div className="min-w-0 pr-2">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                     <span className="font-bold text-primary text-xs sm:text-sm truncate">{os.protocol}</span>
                     <span className={`text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${
                       os.status?.toUpperCase() === 'RESOLVIDA' || os.status?.toUpperCase() === 'RESOLVIDO' || os.status?.toUpperCase() === 'CONCLUIDA' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
@@ -393,6 +393,15 @@ export function ServiceOrdersPanel() {
                         ? 'RESOLVIDA'
                         : (os.status || 'RECEBIDA')).replace('_', ' ')}
                     </span>
+                    {!os.complaintId && !os.complaint ? (
+                      <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30">
+                        OS Avulsa (Gestão)
+                      </span>
+                    ) : (
+                      <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                        Origem: Denúncia
+                      </span>
+                    )}
                   </div>
                   <h4 className="text-foreground font-medium text-xs sm:text-sm truncate">{os.category}</h4>
                   <p className="text-foreground/60 text-[11px] sm:text-xs mt-0.5 line-clamp-1">{os.address || 'Endereço não informado'}</p>
@@ -426,11 +435,31 @@ export function ServiceOrdersPanel() {
                       <span className="text-foreground/50 block text-xs mb-1">Descrição</span>
                       <p>{selectedOS.description}</p>
                     </div>
-                    {selectedOS.complaint && (
+                    {selectedOS.complaint ? (
                       <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl">
-                        <h4 className="font-semibold text-primary mb-2 text-xs uppercase tracking-wider">Denúncia Original</h4>
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <h4 className="font-semibold text-primary text-xs uppercase tracking-wider">Origem: Denúncia do Cidadão</h4>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                            Denúncia
+                          </span>
+                        </div>
                         <p className="mb-1"><span className="text-foreground/60">Protocolo:</span> {selectedOS.complaint.protocol}</p>
                         <p><span className="text-foreground/60">Cidadão:</span> {selectedOS.complaint.user?.name || 'Não informado'}</p>
+                      </div>
+                    ) : (
+                      <div className="bg-purple-500/10 border border-purple-500/25 p-3 rounded-xl">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <h4 className="font-semibold text-purple-600 dark:text-purple-400 text-xs uppercase tracking-wider">Origem: Gestor / Administração</h4>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30">
+                            OS Avulsa
+                          </span>
+                        </div>
+                        <p className="text-xs text-foreground/80">Esta Ordem de Serviço foi gerada de forma <b>avulsa</b> pela equipe de gestão / administração pública.</p>
+                        {selectedOS.createdBy && (
+                          <p className="mt-2 text-xs">
+                            <span className="text-foreground/60">Criado por:</span> <b className="text-foreground">{selectedOS.createdBy.name || selectedOS.createdBy.email}</b> ({selectedOS.createdBy.role})
+                          </p>
+                        )}
                       </div>
                     )}
 
