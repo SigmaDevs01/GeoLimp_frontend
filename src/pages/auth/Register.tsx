@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/shared/components/Logo';
 import { api } from '@/lib/api';
 import { useThemeStore } from '@/store/useThemeStore';
+import { maskPhone, normalizePhoneForApi } from '@/shared/utils/phone.utils';
 import { Loader2, Eye, EyeOff, Sun, Moon, X, MessageCircle } from 'lucide-react';
 
 export function Register() {
@@ -26,11 +27,12 @@ export function Register() {
     setError('');
     
     try {
+      const normalizedPhone = normalizePhoneForApi(phone);
       await api.post('/auth/register', { 
         name, 
         email, 
         password, 
-        phone, 
+        phone: normalizedPhone, 
         whatsappNotifications 
       });
       navigate('/login');
@@ -112,9 +114,18 @@ export function Register() {
             <Input 
               id="phone" 
               type="tel" 
-              placeholder="(00) 00000-0000" 
+              placeholder="(99) 99999-9999" 
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(maskPhone(e.target.value))}
+              onBlur={() => {
+                if (phone) {
+                  // Ao sair do campo, formata com o 9 inserido caso o usuário tenha digitado apenas 8 dígitos
+                  const norm = normalizePhoneForApi(phone);
+                  if (norm) {
+                    setPhone(maskPhone(norm.startsWith('55') ? norm.slice(2) : norm));
+                  }
+                }
+              }}
               className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground"
               required
             />

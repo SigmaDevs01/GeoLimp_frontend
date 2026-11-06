@@ -8,7 +8,6 @@ import { HeatmapLayer } from '@/components/Map/HeatmapLayer';
 import { BottomDetailCard } from '@/components/Map/BottomDetailCard';
 import { SidebarLayout } from '@/components/Sidebar/SidebarLayout';
 import { ComplaintFormModal } from '@/components/Map/ComplaintFormModal';
-import { OSFormModal } from '@/components/Admin/OSFormModal';
 import { LocationPickerOverlay } from '@/components/Map/LocationPickerOverlay';
 import { Button } from '@/components/ui/button';
 import { Plus, AlertTriangle, User, Sun, Moon } from 'lucide-react';
@@ -132,8 +131,6 @@ export function MapPage() {
   // View Complaint State
   const [selectedComplaint, setSelectedComplaint] = useState<any | null>(null);
   const [complaintToEdit, setComplaintToEdit] = useState<any | null>(null);
-  const [osToEdit, setOsToEdit] = useState<any | null>(null);
-  const [showOsFormModal, setShowOsFormModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [suppressHeatmapOnFocus, setSuppressHeatmapOnFocus] = useState(false);
@@ -275,24 +272,31 @@ export function MapPage() {
       setSelectedAddress(e.detail.complaint.address || '');
       setShowFormModal(true);
     };
-    const handleOpenEditOs = (e: any) => {
-      setOsToEdit(e.detail.os);
-      setShowOsFormModal(true);
-    };
     const handleSidebarChange = (e: any) => {
       setIsSidebarOpen(!!e.detail?.isOpen);
+    };
+    const handleCloseBottomCard = () => {
+      setSelectedComplaint(null);
     };
     
     window.addEventListener('request-os-location', handleRequestOsLoc);
     window.addEventListener('open-edit-complaint', handleOpenEdit);
-    window.addEventListener('open-edit-os', handleOpenEditOs);
     window.addEventListener('sidebar-state-change', handleSidebarChange);
+    window.addEventListener('open-os-tab', handleCloseBottomCard);
+    window.addEventListener('open-complaints-tab', handleCloseBottomCard);
+    window.addEventListener('open-teams-tab', handleCloseBottomCard);
+    window.addEventListener('open-managers-tab', handleCloseBottomCard);
+    window.addEventListener('open-settings-tab', handleCloseBottomCard);
     
     return () => {
       window.removeEventListener('request-os-location', handleRequestOsLoc);
       window.removeEventListener('open-edit-complaint', handleOpenEdit);
-      window.removeEventListener('open-edit-os', handleOpenEditOs);
       window.removeEventListener('sidebar-state-change', handleSidebarChange);
+      window.removeEventListener('open-os-tab', handleCloseBottomCard);
+      window.removeEventListener('open-complaints-tab', handleCloseBottomCard);
+      window.removeEventListener('open-teams-tab', handleCloseBottomCard);
+      window.removeEventListener('open-managers-tab', handleCloseBottomCard);
+      window.removeEventListener('open-settings-tab', handleCloseBottomCard);
     };
   }, []);
 
@@ -662,21 +666,6 @@ export function MapPage() {
           selectedLocation={selectedLocation}
           selectedAddress={selectedAddress}
           onSuccess={handleFormSuccess}
-        />
-      )}
-
-      {showOsFormModal && (
-        <OSFormModal
-          initialData={osToEdit}
-          onClose={() => {
-            setShowOsFormModal(false);
-            setOsToEdit(null);
-          }}
-          onSuccess={() => {
-            setShowOsFormModal(false);
-            setOsToEdit(null);
-            fetchMapData();
-          }}
         />
       )}
 

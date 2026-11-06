@@ -2,10 +2,21 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, MapPin, X, ChevronDown, Map, Image as ImageIcon, Check } from 'lucide-react';
+import { Search, Filter, MapPin, X, ChevronDown, Map, Image as ImageIcon, Check, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useSocketStore } from '@/store/useSocketStore';
 import { ImageGalleryModal } from '@/shared/components/ImageGalleryModal';
+import { formatPhoneDisplay } from '@/shared/utils/phone.utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Todos' },
@@ -22,6 +33,8 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+  const [complaintToDelete, setComplaintToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showImage, setShowImage] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -180,6 +193,25 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
     }, 50);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!complaintToDelete) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/complaints/${complaintToDelete.id}`);
+      setComplaints(prev => prev.filter(c => c.id !== complaintToDelete.id));
+      setTotal(prev => Math.max(0, prev - 1));
+      if (selectedComplaint?.id === complaintToDelete.id) {
+        setSelectedComplaint(null);
+      }
+      setComplaintToDelete(null);
+    } catch (err: any) {
+      console.error('Erro ao excluir denúncia:', err);
+      alert(err.response?.data?.message || 'Erro ao excluir denúncia.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-left-4 duration-500 relative">
       <div className="hidden md:flex items-center justify-between mb-6">
@@ -293,7 +325,7 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
                         <h4 className="font-semibold text-foreground mb-2 text-xs uppercase tracking-wider">Dados do Cidadão</h4>
                         <p className="mb-1"><span className="text-foreground/60">Nome:</span> {selectedComplaint.user.name}</p>
                         <p className="mb-1"><span className="text-foreground/60">Email:</span> {selectedComplaint.user.email}</p>
-                        <p><span className="text-foreground/60">Telefone:</span> {selectedComplaint.user.phone || 'Não informado'}</p>
+                        <p><span className="text-foreground/60">Telefone:</span> {formatPhoneDisplay(selectedComplaint.user.phone) || 'Não informado'}</p>
                       </div>
                     )}
 
@@ -309,6 +341,15 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-foreground/10">
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-black/10 dark:bg-white/10 hover:bg-destructive hover:text-destructive-foreground text-foreground transition-colors" 
+                        onClick={() => setComplaintToDelete(selectedComplaint)}
+                      >
+                        <Trash2 size={14} className="mr-1.5" /> Excluir
+                      </Button>
+
                       {selectedComplaint.photos && selectedComplaint.photos.length > 0 && (
                         <Button 
                           variant="outline" 
@@ -381,6 +422,29 @@ export function ComplaintsAdminPanel({ onComplaintSelect }: { onComplaintSelect?
         title={selectedComplaint?.category || 'Fotos da Denúncia'}
         onClose={() => setShowImage(false)}
       />
+
+      {/* Modal de Confirmação de Exclusão de Denúncia */}
+      <AlertDialog open={!!complaintToDelete} onOpenChange={(open) => !open && setComplaintToDelete(null)}>
+        <AlertDialogContent className="z-[110]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Denúncia</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta denúncia <b>{complaintToDelete?.protocol}</b>? Essa ação não pode ser desfeita.
+              {complaintToDelete?.serviceOrderProtocol && ' A Ordem de Serviço vinculada a esta denúncia também será removida.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Excluindo...' : 'Sim, excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -10,12 +10,11 @@ import { useOSStore } from '@/store/useOSStore';
 import { VALID_CATEGORIES } from '@/shared/constants/categories';
 
 interface OSFormModalProps {
-  initialData?: any;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProps) {
+export function OSFormModal({ onClose, onSuccess }: OSFormModalProps) {
   const { setPendingNewOS } = useOSStore();
   const [formData, setFormData] = useState({ 
     category: '', 
@@ -24,28 +23,14 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        category: initialData.category || '',
-        description: initialData.description || '',
-        address: initialData.address || ''
-      });
-    }
-  }, [initialData]);
-
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      if (initialData?.id) {
-        await api.patch(`/service-orders/${initialData.id}`, formData);
-      } else {
-        await api.post('/service-orders', formData);
-      }
+      await api.post('/service-orders', formData);
       onSuccess();
     } catch (e) {
-      console.error("Erro ao salvar OS", e);
-      alert("Erro ao salvar OS. Verifique os campos.");
+      console.error("Erro ao criar OS", e);
+      alert("Erro ao criar OS. Verifique os campos.");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,10 +42,6 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
     window.dispatchEvent(new CustomEvent('open-map-tab'));
     window.dispatchEvent(new CustomEvent('request-os-location'));
   };
-
-  const hasLegacyCategory = Boolean(
-    formData.category && !VALID_CATEGORIES.includes(formData.category as any)
-  );
 
   return createPortal(
     <div 
@@ -78,7 +59,7 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
         className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200"
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">{initialData?.id ? 'Editar OS' : 'Nova OS'}</h3>
+          <h3 className="text-xl font-bold">Nova OS</h3>
           <button onClick={onClose} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
         </div>
         <div className="space-y-4">
@@ -92,9 +73,6 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
                 <SelectValue placeholder="Selecione uma categoria..." />
               </SelectTrigger>
               <SelectContent className="z-[150] max-h-80 rounded-xl custom-scrollbar">
-                {hasLegacyCategory && (
-                  <SelectItem value={formData.category}>{formData.category}</SelectItem>
-                )}
                 {VALID_CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
@@ -107,11 +85,9 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
             <label className="text-sm font-medium mb-1 block">Endereço</label>
             <div className="flex gap-2">
               <Input className="flex-1" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="Local da ocorrência" />
-              {!initialData?.id && (
-                <Button variant="outline" className="px-3 rounded-xl border-foreground/10" onClick={handleRequestMapLocation}>
-                  <MapPin size={18} />
-                </Button>
-              )}
+              <Button variant="outline" className="px-3 rounded-xl border-foreground/10" onClick={handleRequestMapLocation} title="Marcar no mapa">
+                <MapPin size={18} />
+              </Button>
             </div>
           </div>
           <div>

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, Plus, Users, User, X, ChevronDown, MapPin, Trash2, Edit2, MoreVertical, Check } from 'lucide-react';
+import { Search, Filter, Plus, Users, User, X, ChevronDown, MapPin, Trash2, MoreVertical, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -48,7 +48,6 @@ export function ServiceOrdersPanel() {
   // Modals state
   const [assigningOS, setAssigningOS] = useState<any>(null);
   const [selectedTeamId, setSelectedTeamId] = useState('');
-  const [osToEdit, setOsToEdit] = useState<any>(null);
   const [osToDelete, setOsToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [completingOS, setCompletingOS] = useState<any>(null);
@@ -445,17 +444,6 @@ export function ServiceOrdersPanel() {
                         <Trash2 size={14} className="mr-1.5" /> Excluir
                       </Button>
 
-                      {!selectedOS.complaintId && (
-                        <Button 
-                          variant="secondary" 
-                          size="sm" 
-                          className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-foreground transition-colors" 
-                          onClick={() => setOsToEdit(selectedOS)}
-                        >
-                          <Edit2 size={14} className="mr-1.5" /> Editar
-                        </Button>
-                      )}
-
                       {(selectedOS.status === 'PENDENTE' || selectedOS.status === 'RECEBIDA') && (
                         <Button 
                           onClick={() => setAssigningOS(selectedOS)} 
@@ -534,15 +522,20 @@ export function ServiceOrdersPanel() {
           role="dialog"
           aria-modal="true"
           data-modal="true"
-          onPointerDown={e => e.stopPropagation()}
+          onPointerDown={e => {
+            if (e.target === e.currentTarget) e.stopPropagation();
+          }}
           className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
-          onClick={() => {
-            setAssigningOS(null);
-            setSelectedTeamId('');
+          onClick={e => {
+            if (e.target === e.currentTarget) {
+              setAssigningOS(null);
+              setSelectedTeamId('');
+            }
           }}
         >
           <div
             className="bg-background p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-foreground/10 animate-in zoom-in-95 duration-200"
+            onPointerDown={e => e.stopPropagation()}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -566,7 +559,11 @@ export function ServiceOrdersPanel() {
                 <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-black/5 dark:bg-white/5 border-foreground/10 text-foreground text-sm">
                   <SelectValue placeholder="Selecione a equipe..." />
                 </SelectTrigger>
-                <SelectContent className="z-[150] max-h-72 rounded-xl custom-scrollbar">
+                <SelectContent 
+                  onPointerDown={e => e.stopPropagation()}
+                  onClick={e => e.stopPropagation()}
+                  className="z-[150] max-h-72 rounded-xl custom-scrollbar"
+                >
                   {teams.length === 0 ? (
                     <div className="px-3 py-2 text-xs text-foreground/50">
                       Nenhuma equipe cadastrada
@@ -595,12 +592,17 @@ export function ServiceOrdersPanel() {
           role="dialog"
           aria-modal="true"
           data-modal="true"
-          onPointerDown={e => e.stopPropagation()}
+          onPointerDown={e => {
+            if (e.target === e.currentTarget) e.stopPropagation();
+          }}
           className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
-          onClick={() => setCompletingOS(null)}
+          onClick={e => {
+            if (e.target === e.currentTarget) setCompletingOS(null);
+          }}
         >
           <div
             className="bg-background p-6 rounded-2xl w-full max-w-sm shadow-2xl border border-foreground/10 text-center animate-in zoom-in-95 duration-200"
+            onPointerDown={e => e.stopPropagation()}
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-xl font-bold mb-2 text-foreground">Concluir OS</h3>
@@ -614,30 +616,23 @@ export function ServiceOrdersPanel() {
         document.body
       )}
 
-      {/* Edit OS Modal */}
-      {osToEdit && (
-        <OSFormModal
-          initialData={osToEdit}
-          onClose={() => setOsToEdit(null)}
-          onSuccess={() => {
-            setOsToEdit(null);
-            fetchOSs();
-          }}
-        />
-      )}
-
       {/* Modal Membros da Equipe */}
       {viewingTeam && createPortal(
         <div
           role="dialog"
           aria-modal="true"
           data-modal="true"
-          onPointerDown={e => e.stopPropagation()}
+          onPointerDown={e => {
+            if (e.target === e.currentTarget) e.stopPropagation();
+          }}
           className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 pointer-events-auto animate-in fade-in duration-200"
-          onClick={() => setViewingTeam(null)}
+          onClick={e => {
+            if (e.target === e.currentTarget) setViewingTeam(null);
+          }}
         >
           <div
             className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200"
+            onPointerDown={e => e.stopPropagation()}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-start gap-4 mb-4">

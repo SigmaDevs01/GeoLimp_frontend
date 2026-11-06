@@ -16,12 +16,14 @@ import {
   Mail,
   Phone,
   Shield,
+  Trash2,
   X,
 } from 'lucide-react';
 import { Logo } from '@/shared/components/Logo';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { useSocketStore } from '@/store/useSocketStore';
+import { formatPhoneDisplay } from '@/shared/utils/phone.utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +58,8 @@ export function SidebarLayout({
   const [lastOpenTab, setLastOpenTab] = useState<Exclude<SidebarTab, 'map'> | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
 
   // Estados para paginação de denúncias do Cidadão (10 iniciais + Ver mais)
@@ -253,6 +257,21 @@ export function SidebarLayout({
     await logout();
   };
 
+  const handleConfirmDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      await api.delete('/users/me/account');
+      setShowDeleteAccountConfirm(false);
+      await logout();
+      window.location.href = '/';
+    } catch (err: any) {
+      console.error('Erro ao excluir conta:', err);
+      alert(err.response?.data?.message || 'Erro ao excluir conta. Tente novamente.');
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
   const renderPanelContent = (_isMobile = false) => (
     <>
       {displayTab === 'settings' && (
@@ -312,7 +331,7 @@ export function SidebarLayout({
                       <div className="min-w-0 flex-1">
                         <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">Telefone</span>
                         <span className="text-foreground font-medium text-xs break-words">
-                          {user.phone}
+                          {formatPhoneDisplay(user.phone)}
                         </span>
                       </div>
                     </div>
@@ -369,6 +388,40 @@ export function SidebarLayout({
                   />
                 </div>
               </button>
+            </div>
+
+            {/* Privacidade e LGPD */}
+            <div className="space-y-1.5 sm:space-y-2">
+              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
+                Privacidade &amp; LGPD
+              </span>
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-2.5">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0 mt-0.5">
+                    <Trash2 size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs sm:text-sm font-semibold text-foreground">
+                      Excluir Conta (LGPD)
+                    </h4>
+                    <p className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 mt-0.5 leading-relaxed">
+                      Apague seus dados pessoais do servidor. Suas denúncias serão preservadas de forma 100% anônima para a continuidade do atendimento público.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDeleteAccountConfirm(true)}
+                    className="w-full h-8 sm:h-9 text-xs font-semibold rounded-xl border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:border-red-500 transition-colors"
+                  >
+                    <Trash2 size={13} className="mr-1.5" /> Excluir Minha Conta
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -762,6 +815,51 @@ export function SidebarLayout({
               className="rounded-xl bg-red-600 text-white hover:bg-red-700"
             >
               {isLoggingOut ? 'Saindo...' : 'Sim, sair'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de Confirmação de Exclusão de Conta (LGPD) */}
+      <AlertDialog
+        open={showDeleteAccountConfirm}
+        onOpenChange={(open) => {
+          if (!isDeletingAccount) setShowDeleteAccountConfirm(open);
+        }}
+      >
+        <AlertDialogContent className="z-[110] max-w-sm sm:max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 size={18} />
+              <span>Excluir Conta (LGPD)</span>
+            </AlertDialogTitle>
+            <div className="text-xs sm:text-sm text-foreground/80 space-y-2.5 pt-2">
+              <p>
+                Tem certeza de que deseja excluir sua conta? Esta ação é <b>permanente e irreversível</b>.
+              </p>
+              <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-1.5 text-[11px] sm:text-xs">
+                <p>
+                  • <b>Dados pessoais removidos:</b> seu nome, e-mail, telefone, senha e notificações serão completamente deletados do servidor.
+                </p>
+                <p>
+                  • <b>Denúncias preservadas:</b> suas denúncias feitas permanecerão arquivadas para os serviços públicos municipais de forma <b>100% anônima</b>.
+                </p>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel disabled={isDeletingAccount} className="rounded-xl">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDeleteAccount();
+              }}
+              disabled={isDeletingAccount}
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingAccount ? 'Excluindo...' : 'Sim, excluir minha conta'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

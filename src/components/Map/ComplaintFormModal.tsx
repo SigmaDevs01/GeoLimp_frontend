@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/lib/api';
 import { VALID_CATEGORIES } from '@/shared/constants/categories';
 import { convertToWebP } from '@/shared/utils/image';
+import { maskPhone, normalizePhoneForApi } from '@/shared/utils/phone.utils';
 import { useAuthStore } from '@/store/useAuthStore';
 
 interface ComplaintFormModalProps {
@@ -109,7 +110,7 @@ export function ComplaintFormModal({
       if (wantWhatsappNotifications) {
         payload.whatsappNotifications = true;
         if (userPhone && userPhone.trim()) {
-          payload.phone = userPhone.trim();
+          payload.phone = normalizePhoneForApi(userPhone.trim());
         }
       }
 
@@ -127,7 +128,7 @@ export function ComplaintFormModal({
       if (wantWhatsappNotifications) {
         updateUser({
           whatsappNotifications: true,
-          ...(userPhone?.trim() ? { phone: userPhone.trim() } : {}),
+          ...(userPhone?.trim() ? { phone: normalizePhoneForApi(userPhone.trim()) } : {}),
         });
       }
 
@@ -238,7 +239,15 @@ export function ComplaintFormModal({
                       type="tel"
                       placeholder="(99) 98171-8936"
                       value={userPhone}
-                      onChange={(e) => setUserPhone(e.target.value)}
+                      onChange={(e) => setUserPhone(maskPhone(e.target.value))}
+                      onBlur={() => {
+                        if (userPhone) {
+                          const norm = normalizePhoneForApi(userPhone);
+                          if (norm) {
+                            setUserPhone(maskPhone(norm.startsWith('55') ? norm.slice(2) : norm));
+                          }
+                        }
+                      }}
                       className="bg-black/5 dark:bg-white/5 border-foreground/20 text-foreground h-9 rounded-lg text-xs max-w-xs"
                       required={wantWhatsappNotifications}
                     />
