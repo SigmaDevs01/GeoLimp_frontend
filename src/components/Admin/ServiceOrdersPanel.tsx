@@ -382,7 +382,7 @@ export function ServiceOrdersPanel() {
             <div id={`os-card-${os.id}`} key={os.id} className="rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 transition-all flex flex-col overflow-hidden">
               <div onClick={() => toggleDetails(os.id)} className="p-3.5 sm:p-5 flex items-center justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                 <div className="min-w-0 pr-2">
-                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
                     <span className="font-bold text-primary text-xs sm:text-sm truncate">{os.protocol}</span>
                     <span className={`text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${
                       os.status?.toUpperCase() === 'RESOLVIDA' || os.status?.toUpperCase() === 'RESOLVIDO' || os.status?.toUpperCase() === 'CONCLUIDA' ? 'bg-green-500/20 text-green-600 dark:text-green-400' :
@@ -393,15 +393,6 @@ export function ServiceOrdersPanel() {
                         ? 'RESOLVIDA'
                         : (os.status || 'RECEBIDA')).replace('_', ' ')}
                     </span>
-                    {!os.complaintId && !os.complaint ? (
-                      <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30">
-                        OS Avulsa (Gestão)
-                      </span>
-                    ) : (
-                      <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                        Origem: Denúncia
-                      </span>
-                    )}
                   </div>
                   <h4 className="text-foreground font-medium text-xs sm:text-sm truncate">{os.category}</h4>
                   <p className="text-foreground/60 text-[11px] sm:text-xs mt-0.5 line-clamp-1">{os.address || 'Endereço não informado'}</p>
