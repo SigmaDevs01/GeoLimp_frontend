@@ -69,12 +69,12 @@ export function ManagersPanel() {
 
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-left-4 duration-500">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestores do Sistema</h2>
-          <p className="text-foreground/60 text-sm mt-1">Administradores e usuários com privilégios</p>
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="hidden md:block">
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">Gestores do Sistema</h2>
+          <p className="text-foreground/60 text-xs md:text-sm mt-0.5">Administradores e usuários com privilégios</p>
         </div>
-        <Button onClick={handleOpenNew} className="rounded-full shadow-lg"><Plus size={18} className="mr-2" /> Novo Gestor</Button>
+        <Button onClick={handleOpenNew} size="sm" className="rounded-full shadow-md text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4"><Plus size={15} className="mr-1.5" /> Novo Gestor</Button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-4 content-start">

@@ -131,12 +131,12 @@ export function TeamsPanel() {
 
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-left-4 duration-500 relative">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Equipes de Campo</h2>
-          <p className="text-foreground/60 text-sm mt-1">Gestão de equipes e profissionais terceirizados</p>
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="hidden md:block">
+          <h2 className="text-xl md:text-2xl font-bold text-foreground">Equipes de Campo</h2>
+          <p className="text-foreground/60 text-xs md:text-sm mt-0.5">Gestão de equipes e profissionais terceirizados</p>
         </div>
-        <Button onClick={() => setIsCreatingTeam(true)} className="rounded-full shadow-lg"><Plus size={18} className="mr-2" /> Nova Equipe</Button>
+        <Button onClick={() => setIsCreatingTeam(true)} size="sm" className="rounded-full shadow-md text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4"><Plus size={15} className="mr-1.5" /> Nova Equipe</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-4 content-start">

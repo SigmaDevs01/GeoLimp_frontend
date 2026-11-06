@@ -249,72 +249,72 @@ export function SidebarLayout({
     <>
       {displayTab === 'settings' && (
         <div className="flex flex-col h-full min-h-0 animate-in fade-in slide-in-from-left-2 duration-300">
-          <div className="mb-4 sm:mb-6">
+          <div className="hidden md:block mb-4 sm:mb-6">
             <h2 className="text-xl font-bold text-foreground">Ajustes</h2>
             <p className="text-xs text-foreground/60 dark:text-foreground/50 mt-0.5">
               Informações do perfil e preferências
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-4 sm:space-y-5 pr-1">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-3 sm:space-y-4 pr-1">
             {/* Informações do Perfil */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
+            <div className="space-y-1.5 sm:space-y-2">
+              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
                 Perfil
               </span>
-              <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-4">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-3 sm:space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-lg shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-base sm:text-lg shrink-0">
                     {userInitial}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-foreground text-base leading-tight truncate">
+                    <h3 className="font-bold text-foreground text-sm sm:text-base leading-tight truncate">
                       {user.name || 'Usuário'}
                     </h3>
-                    <span className="inline-flex items-center mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                    <span className="inline-flex items-center mt-0.5 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                       {roleLabel}
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-foreground/10 space-y-3 text-xs">
-                  <div className="flex items-start gap-2.5">
-                    <User size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                <div className="pt-2.5 sm:pt-3 border-t border-foreground/10 space-y-2.5 text-xs">
+                  <div className="flex items-start gap-2">
+                    <User size={14} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <span className="text-foreground/60 dark:text-foreground/50 block">Nome</span>
-                      <span className="text-foreground font-medium break-words">
+                      <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">Nome</span>
+                      <span className="text-foreground font-medium text-xs break-words">
                         {user.name || 'Não informado'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <Mail size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-2">
+                    <Mail size={14} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <span className="text-foreground/60 dark:text-foreground/50 block">E-mail</span>
-                      <span className="text-foreground font-medium break-all">
+                      <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">E-mail</span>
+                      <span className="text-foreground font-medium text-xs break-all">
                         {user.email || 'Não informado'}
                       </span>
                     </div>
                   </div>
 
                   {user.phone && (
-                    <div className="flex items-start gap-2.5">
-                      <Phone size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                    <div className="flex items-start gap-2">
+                      <Phone size={14} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <span className="text-foreground/60 dark:text-foreground/50 block">Telefone</span>
-                        <span className="text-foreground font-medium break-words">
+                        <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">Telefone</span>
+                        <span className="text-foreground font-medium text-xs break-words">
                           {user.phone}
                         </span>
                       </div>
                     </div>
                   )}
 
-                  <div className="flex items-start gap-2.5">
-                    <Shield size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-2">
+                    <Shield size={14} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <span className="text-foreground/60 dark:text-foreground/50 block">Nível de Acesso</span>
-                      <span className="text-foreground font-medium">
+                      <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">Nível de Acesso</span>
+                      <span className="text-foreground font-medium text-xs">
                         {roleLabel}
                       </span>
                     </div>
@@ -324,24 +324,24 @@ export function SidebarLayout({
             </div>
 
             {/* Aparência / Modo Escuro */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
+            <div className="space-y-1.5 sm:space-y-2">
+              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
                 Aparência
               </span>
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="w-full p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-foreground/20 transition-all flex items-center justify-between gap-3 cursor-pointer"
+                className="w-full p-3 sm:p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-foreground/20 transition-all flex items-center justify-between gap-3 cursor-pointer"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-black/10 dark:bg-white/10 flex items-center justify-center text-foreground shrink-0">
-                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/10 dark:bg-white/10 flex items-center justify-center text-foreground shrink-0">
+                    {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
                   </div>
                   <div className="text-left min-w-0">
-                    <span className="text-sm font-semibold text-foreground block">
+                    <span className="text-xs sm:text-sm font-semibold text-foreground block">
                       Modo Escuro
                     </span>
-                    <span className="text-xs text-foreground/60 dark:text-foreground/50 block">
+                    <span className="text-[10px] sm:text-xs text-foreground/60 dark:text-foreground/50 block">
                       {theme === 'dark' ? 'Ativado' : 'Desativado'}
                     </span>
                   </div>
@@ -350,13 +350,13 @@ export function SidebarLayout({
                 <div
                   role="switch"
                   aria-checked={theme === 'dark'}
-                  className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 flex items-center ${
+                  className={`w-10 sm:w-11 h-5.5 sm:h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 flex items-center ${
                     theme === 'dark' ? 'bg-emerald-500' : 'bg-black/25 dark:bg-white/20'
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
-                      theme === 'dark' ? 'translate-x-5' : 'translate-x-0'
+                    className={`w-4.5 sm:w-5 h-4.5 sm:h-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
+                      theme === 'dark' ? 'translate-x-4.5 sm:translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </div>
@@ -365,13 +365,13 @@ export function SidebarLayout({
           </div>
 
           {/* Botão de Sair */}
-          <div className="pt-4 mt-4 border-t border-foreground/10">
+          <div className="pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-foreground/10">
             <button
               type="button"
               onClick={() => setShowLogoutConfirm(true)}
-              className="w-full h-11 px-4 rounded-2xl bg-red-500/10 hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white border border-red-500/20 hover:border-red-600 font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-9 sm:h-11 px-4 rounded-2xl bg-red-500/10 hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white border border-red-500/20 hover:border-red-600 font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
               <span>Sair</span>
             </button>
           </div>
@@ -380,8 +380,8 @@ export function SidebarLayout({
 
       {displayTab === 'my-complaints' && user.role === 'cidadao' && (
         <div className="flex flex-col flex-1 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="hidden md:block">
               <h2 className="text-lg font-semibold text-foreground">Minhas Denúncias</h2>
               {citizenTotal > 0 && (
                 <p className="text-[11px] text-foreground/50">
@@ -395,19 +395,19 @@ export function SidebarLayout({
                 setActiveTab('map');
                 onAddComplaint?.();
               }}
-              className="rounded-full shadow-md"
+              className="rounded-full shadow-md text-xs h-7.5 px-3"
             >
-              <Plus size={16} className="mr-1" /> Nova
+              <Plus size={14} className="mr-1" /> Nova
             </Button>
           </div>
-          <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 space-y-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 space-y-2.5 sm:space-y-3 custom-scrollbar">
             {citizenLoading && citizenComplaints.length === 0 ? (
-              <div className="py-12 flex flex-col items-center justify-center text-foreground/50 gap-2">
+              <div className="py-10 flex flex-col items-center justify-center text-foreground/50 gap-2">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
                 <span className="text-xs">Carregando denúncias...</span>
               </div>
             ) : citizenComplaints.length === 0 ? (
-              <p className="text-sm text-foreground/60 dark:text-foreground/50">Você ainda não fez nenhuma denúncia.</p>
+              <p className="text-xs sm:text-sm text-foreground/60 dark:text-foreground/50">Você ainda não fez nenhuma denúncia.</p>
             ) : (
               <>
                 {citizenComplaints.map(comp => (
@@ -417,11 +417,11 @@ export function SidebarLayout({
                       setActiveTab('map');
                       onComplaintSelect(comp);
                     }}
-                    className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all group"
+                    className="p-3 sm:p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all group"
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-semibold text-primary uppercase tracking-wider truncate mr-2">{comp.category}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${(comp.status?.toUpperCase() === 'RESOLVIDA' || comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA') ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
+                    <div className="flex justify-between items-start mb-1.5">
+                      <span className="text-[10px] sm:text-xs font-semibold text-primary uppercase tracking-wider truncate mr-2">{comp.category}</span>
+                      <span className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-medium shrink-0 ${(comp.status?.toUpperCase() === 'RESOLVIDA' || comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA') ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
                         (comp.status?.toUpperCase() === 'EM_ANDAMENTO') ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400' :
                           'bg-yellow-500/20 text-amber-700 dark:text-yellow-400'
                         }`}>
@@ -430,8 +430,8 @@ export function SidebarLayout({
                           : comp.status)?.replace('_', ' ')}
                       </span>
                     </div>
-                    <p className="text-sm text-foreground/90 font-medium line-clamp-1">{comp.address}</p>
-                    <p className="text-xs text-foreground/70 dark:text-foreground/60 mt-1 line-clamp-2">{comp.description}</p>
+                    <p className="text-xs sm:text-sm text-foreground/90 font-medium line-clamp-1">{comp.address}</p>
+                    <p className="text-[11px] sm:text-xs text-foreground/70 dark:text-foreground/60 mt-0.5 line-clamp-2">{comp.description}</p>
                   </div>
                 ))}
 
@@ -442,7 +442,7 @@ export function SidebarLayout({
                       variant="outline"
                       disabled={citizenLoadingMore}
                       onClick={() => fetchCitizenComplaints(citizenPage + 1, true)}
-                      className="w-full py-4 rounded-xl border-foreground/10 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3.5 sm:py-4 rounded-xl border-foreground/10 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {citizenLoadingMore ? (
                         <>
@@ -677,27 +677,44 @@ export function SidebarLayout({
         <div
           className="md:hidden fixed inset-x-3 top-16 bottom-20 z-40 rounded-3xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 pointer-events-auto"
         >
-          {/* Mobile Top Header Bar with Close Button */}
-          <div className="relative pt-3 px-4 pb-2.5 flex items-center justify-between border-b border-foreground/10 shrink-0">
-            <div className="w-10 h-1 rounded-full bg-foreground/20 mx-auto absolute left-1/2 -translate-x-1/2 top-2" />
-            <span className="text-xs font-semibold text-foreground/60 uppercase tracking-wider">
-              {displayTab === 'settings'
-                ? 'Ajustes'
-                : displayTab === 'my-complaints'
-                ? 'Minhas Denúncias'
-                : displayTab === 'os'
-                ? 'Ordens de Serviço'
-                : displayTab === 'complaints'
-                ? 'Gestão de Denúncias'
-                : displayTab === 'teams'
-                ? 'Equipes de Campo'
-                : displayTab === 'managers'
-                ? 'Gestores'
-                : ''}
-            </span>
+          {/* Mobile Top Header Bar with Close Button, Title & Subtitle */}
+          <div className="relative pt-3.5 px-4 pb-2.5 flex items-center justify-between border-b border-foreground/10 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-foreground/20 mx-auto absolute left-1/2 -translate-x-1/2 top-1.5" />
+            <div className="min-w-0 pr-2">
+              <h3 className="text-sm font-bold text-foreground truncate">
+                {displayTab === 'settings'
+                  ? 'Ajustes'
+                  : displayTab === 'my-complaints'
+                  ? 'Minhas Denúncias'
+                  : displayTab === 'os'
+                  ? 'Ordens de Serviço'
+                  : displayTab === 'complaints'
+                  ? 'Gestão de Denúncias'
+                  : displayTab === 'teams'
+                  ? 'Equipes de Campo'
+                  : displayTab === 'managers'
+                  ? 'Gestores do Sistema'
+                  : ''}
+              </h3>
+              <p className="text-[10px] text-foreground/50 truncate">
+                {displayTab === 'settings'
+                  ? 'Informações do perfil e preferências'
+                  : displayTab === 'my-complaints'
+                  ? citizenTotal > 0 ? `Exibindo ${citizenComplaints.length} de ${citizenTotal}` : 'Acompanhe suas solicitações'
+                  : displayTab === 'os'
+                  ? 'Gerencie a execução das equipes de campo'
+                  : displayTab === 'complaints'
+                  ? 'Visão geral de todas as denúncias'
+                  : displayTab === 'teams'
+                  ? 'Gestão de equipes e profissionais terceirizados'
+                  : displayTab === 'managers'
+                  ? 'Administradores e usuários com privilégios'
+                  : ''}
+              </p>
+            </div>
             <button
               onClick={() => setActiveTab('map')}
-              className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all cursor-pointer"
+              className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all cursor-pointer shrink-0"
               title="Voltar ao mapa"
             >
               <X size={18} />

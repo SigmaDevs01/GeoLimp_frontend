@@ -396,19 +396,19 @@ export function MapPage() {
         />
       )}
 
-      {/* Top Header Filters */}
-      <div className={`absolute top-0 right-0 z-40 p-2 sm:p-4 pointer-events-none flex justify-end items-start transition-all ${user ? 'left-0 md:left-24' : 'left-0 justify-between'}`}>
+      {/* Desktop Top Header Filters (md:flex) */}
+      <div className={`hidden md:flex absolute top-0 right-0 z-40 p-4 pointer-events-none items-start transition-all ${user ? 'left-24 justify-end' : 'left-0 justify-between'}`}>
         {!user && (
-          <div className="glass-panel glass-blur p-2 px-3 sm:px-4 rounded-full pointer-events-auto flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4 mt-2">
-            <Logo showName className="h-8 sm:h-10 w-auto text-foreground" />
+          <div className="glass-panel glass-blur p-2 px-4 rounded-full pointer-events-auto flex items-center gap-3 ml-4 mt-2">
+            <Logo showName className="h-10 w-auto text-foreground" />
           </div>
         )}
 
-        <div className="pointer-events-auto flex items-center gap-2 sm:gap-4 mt-1 sm:mt-2 mr-2 sm:mr-4 max-w-full overflow-x-auto no-scrollbar py-1">
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="pointer-events-auto flex items-center gap-3 mt-2 mr-4">
+          <div className="flex items-center gap-2">
             {user && user.role !== 'cidadao' && (
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-9 sm:h-10 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium w-[125px] sm:w-[150px] focus:ring-0">
+                <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[150px] focus:ring-0">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
@@ -419,7 +419,7 @@ export function MapPage() {
             )}
 
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-9 sm:h-10 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium w-[135px] sm:w-[195px] focus:ring-0">
+              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[195px] focus:ring-0">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl max-h-80 custom-scrollbar bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
@@ -433,7 +433,7 @@ export function MapPage() {
             </Select>
 
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-9 sm:h-10 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium w-[120px] sm:w-[155px] focus:ring-0">
+              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[155px] focus:ring-0">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
@@ -446,23 +446,91 @@ export function MapPage() {
           </div>
 
           {!user && (
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-2">
               <button 
                 onClick={toggleTheme}
-                className="glass-panel glass-blur h-9 w-9 sm:h-10 sm:w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm"
+                className="glass-panel glass-blur h-10 w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm"
               >
-                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </button>
               <button 
                 onClick={() => navigate('/login')}
-                className="glass-panel glass-blur h-9 px-4 sm:h-10 sm:px-6 rounded-full text-xs sm:text-sm font-medium hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-1.5 sm:gap-2 pointer-events-auto"
+                className="glass-panel glass-blur h-10 px-6 rounded-full text-sm font-medium hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-2 pointer-events-auto"
               >
-                <User size={15} /> Entrar
+                <User size={16} /> Entrar
               </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Mobile Top Header (md:hidden) */}
+      <div className="flex md:hidden absolute top-0 inset-x-0 z-40 p-2.5 items-center justify-between pointer-events-none">
+        <div className="glass-panel glass-blur p-1.5 px-3 rounded-full pointer-events-auto flex items-center gap-2 shadow-md">
+          <Logo showName className="h-7 w-auto text-foreground" />
+        </div>
+
+        {!user && (
+          <div className="flex items-center gap-1.5 pointer-events-auto">
+            <button 
+              onClick={toggleTheme}
+              className="glass-panel glass-blur h-8 w-8 rounded-full text-foreground/70 hover:text-foreground transition-colors flex items-center justify-center shadow-md"
+              title="Alternar tema"
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+            <button 
+              onClick={() => navigate('/login')}
+              className="glass-panel glass-blur h-8 px-3 rounded-full text-xs font-semibold hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-1 shadow-md"
+            >
+              <User size={13} /> Entrar
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Vertical Filter Column (md:hidden) */}
+      {!isSidebarOpen && (
+        <div className="flex md:hidden absolute top-[54px] right-2.5 z-30 flex-col gap-1.5 items-end pointer-events-auto animate-in fade-in duration-200">
+          {user && user.role !== 'cidadao' && (
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-md h-8 px-2.5 rounded-full text-[11px] font-medium w-[120px] focus:ring-0">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl bg-[#e1e4ea] dark:bg-[#18181b] border-border/80 text-xs shadow-xl">
+                <SelectItem value="denuncias" className="text-xs py-1">Denúncias</SelectItem>
+                <SelectItem value="os" className="text-xs py-1">OSs</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-md h-8 px-2.5 rounded-full text-[11px] font-medium w-[120px] focus:ring-0">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl max-h-56 custom-scrollbar bg-[#e1e4ea] dark:bg-[#18181b] border-border/80 text-xs shadow-xl">
+              <SelectItem value="all" className="text-xs py-1">Todas</SelectItem>
+              {VALID_CATEGORIES.map((cat) => (
+                <SelectItem key={cat} value={cat} className="text-xs py-1">
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-md h-8 px-2.5 rounded-full text-[11px] font-medium w-[120px] focus:ring-0">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl bg-[#e1e4ea] dark:bg-[#18181b] border-border/80 text-xs shadow-xl">
+              <SelectItem value="all" className="text-xs py-1">Todos</SelectItem>
+              <SelectItem value="RECEBIDA" className="text-xs py-1">Recebida</SelectItem>
+              <SelectItem value="EM_ANDAMENTO" className="text-xs py-1">Em Andamento</SelectItem>
+              <SelectItem value="RESOLVIDA" className="text-xs py-1">Resolvida</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Floating Action Button - For unlogged users and logged-in citizens */}
       {(!user || user.role === 'cidadao') && !addMode && !osAddMode && !selectedComplaint && !isSidebarOpen && (

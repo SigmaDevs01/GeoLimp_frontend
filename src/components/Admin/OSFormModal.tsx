@@ -66,7 +66,7 @@ export function OSFormModal({ initialData, onClose, onSuccess }: OSFormModalProp
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-6 pointer-events-auto">
       <div className="bg-background p-6 rounded-2xl w-full max-w-md shadow-2xl border border-foreground/10 animate-in zoom-in-95">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">{initialData?.id ? 'Editar OS Avulsa' : 'Criar OS Avulsa'}</h3>
+          <h3 className="text-xl font-bold">{initialData?.id ? 'Editar OS' : 'Nova OS'}</h3>
           <button onClick={onClose} className="text-foreground/50 hover:text-foreground"><X size={20} /></button>
         </div>
         <div className="space-y-4">
