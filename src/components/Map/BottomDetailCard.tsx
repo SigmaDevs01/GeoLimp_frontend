@@ -108,7 +108,9 @@ export function BottomDetailCard({ complaint, onClose }: BottomDetailCardProps) 
 
   return (
     <>
-      <div className="absolute bottom-4 md:bottom-4 md:right-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 z-50 w-[calc(100%-2rem)] md:w-[340px] pointer-events-none">
+      <div className={`absolute md:bottom-4 md:right-4 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 z-50 w-[calc(100%-1.5rem)] md:w-[340px] pointer-events-none transition-all ${
+        user ? 'bottom-20' : 'bottom-4'
+      }`}>
         <div className="p-4 rounded-2xl pointer-events-auto animate-in slide-in-from-bottom-8 fade-in duration-500 shadow-2xl relative bg-background/85 backdrop-blur-md border border-border">
           <button 
             onClick={onClose}

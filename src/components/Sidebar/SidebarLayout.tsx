@@ -16,6 +16,7 @@ import {
   Mail,
   Phone,
   Shield,
+  X,
 } from 'lucide-react';
 import { Logo } from '@/shared/components/Logo';
 import { useEffect, useState, useRef, useCallback } from 'react';
@@ -205,6 +206,14 @@ export function SidebarLayout({
     return () => clearTimeout(timer);
   }, [activeTab]);
 
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('sidebar-state-change', {
+        detail: { isOpen: activeTab !== 'map', tab: activeTab },
+      })
+    );
+  }, [activeTab]);
+
   if (!user) return null;
 
   const isCitizen = user.role === 'cidadao';
@@ -236,322 +245,470 @@ export function SidebarLayout({
     await logout();
   };
 
-  return (
-    <div ref={sidebarContainerRef} className="absolute top-4 left-4 bottom-4 z-50 flex items-start h-[calc(100vh-2rem)] pointer-events-none">
+  const renderPanelContent = (_isMobile = false) => (
+    <>
+      {displayTab === 'settings' && (
+        <div className="flex flex-col h-full min-h-0 animate-in fade-in slide-in-from-left-2 duration-300">
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-xl font-bold text-foreground">Ajustes</h2>
+            <p className="text-xs text-foreground/60 dark:text-foreground/50 mt-0.5">
+              Informações do perfil e preferências
+            </p>
+          </div>
 
-      {/* Icon Strip (Far Left) */}
-      <div
-        className="bg-[#e1e4ea]/90 dark:bg-[#18181b]/90 border border-border/95 w-16 h-fit max-h-[calc(100vh-2rem)] overflow-y-auto no-scrollbar shrink-0 py-5 gap-3 rounded-3xl shadow-2xl flex flex-col items-center pointer-events-auto transition-all duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-      >
-        <Logo className="w-8 h-8 text-foreground shrink-0" />
+          <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-4 sm:space-y-5 pr-1">
+            {/* Informações do Perfil */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
+                Perfil
+              </span>
+              <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-lg shrink-0">
+                    {userInitial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-foreground text-base leading-tight truncate">
+                      {user.name || 'Usuário'}
+                    </h3>
+                    <span className="inline-flex items-center mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                      {roleLabel}
+                    </span>
+                  </div>
+                </div>
 
-        <div className="w-7 h-px bg-foreground/10 shrink-0" />
+                <div className="pt-3 border-t border-foreground/10 space-y-3 text-xs">
+                  <div className="flex items-start gap-2.5">
+                    <User size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-foreground/60 dark:text-foreground/50 block">Nome</span>
+                      <span className="text-foreground font-medium break-words">
+                        {user.name || 'Não informado'}
+                      </span>
+                    </div>
+                  </div>
 
-        <div className="w-full flex flex-col items-center gap-3">
-          <button
-            onClick={() => handleTabClick('map')}
-            className={`p-3 rounded-full transition-all ${activeTab === 'map' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
-            title="Mapa"
-          >
-            <Map size={20} />
-          </button>
+                  <div className="flex items-start gap-2.5">
+                    <Mail size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-foreground/60 dark:text-foreground/50 block">E-mail</span>
+                      <span className="text-foreground font-medium break-all">
+                        {user.email || 'Não informado'}
+                      </span>
+                    </div>
+                  </div>
 
-          {isCitizen ? (
-            <button
-              onClick={() => handleTabClick('my-complaints')}
-              className={`p-3 rounded-full transition-all ${activeTab === 'my-complaints' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
-              title="Minhas Denúncias"
-            >
-              <Grid size={20} />
-            </button>
-          ) : (
-            <>
+                  {user.phone && (
+                    <div className="flex items-start gap-2.5">
+                      <Phone size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-foreground/60 dark:text-foreground/50 block">Telefone</span>
+                        <span className="text-foreground font-medium break-words">
+                          {user.phone}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-2.5">
+                    <Shield size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-foreground/60 dark:text-foreground/50 block">Nível de Acesso</span>
+                      <span className="text-foreground font-medium">
+                        {roleLabel}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Aparência / Modo Escuro */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
+                Aparência
+              </span>
               <button
-                onClick={() => handleTabClick('os')}
-                className={`p-3 rounded-full transition-all ${activeTab === 'os' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
-                title="Ordens de Serviço (OSs)"
+                type="button"
+                onClick={toggleTheme}
+                className="w-full p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-foreground/20 transition-all flex items-center justify-between gap-3 cursor-pointer"
               >
-                <FileText size={20} />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-black/10 dark:bg-white/10 flex items-center justify-center text-foreground shrink-0">
+                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                  </div>
+                  <div className="text-left min-w-0">
+                    <span className="text-sm font-semibold text-foreground block">
+                      Modo Escuro
+                    </span>
+                    <span className="text-xs text-foreground/60 dark:text-foreground/50 block">
+                      {theme === 'dark' ? 'Ativado' : 'Desativado'}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  role="switch"
+                  aria-checked={theme === 'dark'}
+                  className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 flex items-center ${
+                    theme === 'dark' ? 'bg-emerald-500' : 'bg-black/25 dark:bg-white/20'
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
+                      theme === 'dark' ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </div>
               </button>
+            </div>
+          </div>
+
+          {/* Botão de Sair */}
+          <div className="pt-4 mt-4 border-t border-foreground/10">
+            <button
+              type="button"
+              onClick={() => setShowLogoutConfirm(true)}
+              className="w-full h-11 px-4 rounded-2xl bg-red-500/10 hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white border border-red-500/20 hover:border-red-600 font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <LogOut size={18} />
+              <span>Sair</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {displayTab === 'my-complaints' && user.role === 'cidadao' && (
+        <div className="flex flex-col flex-1 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Minhas Denúncias</h2>
+              {citizenTotal > 0 && (
+                <p className="text-[11px] text-foreground/50">
+                  Exibindo {citizenComplaints.length} de {citizenTotal}
+                </p>
+              )}
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                setActiveTab('map');
+                onAddComplaint?.();
+              }}
+              className="rounded-full shadow-md"
+            >
+              <Plus size={16} className="mr-1" /> Nova
+            </Button>
+          </div>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 space-y-3 custom-scrollbar">
+            {citizenLoading && citizenComplaints.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center text-foreground/50 gap-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+                <span className="text-xs">Carregando denúncias...</span>
+              </div>
+            ) : citizenComplaints.length === 0 ? (
+              <p className="text-sm text-foreground/60 dark:text-foreground/50">Você ainda não fez nenhuma denúncia.</p>
+            ) : (
+              <>
+                {citizenComplaints.map(comp => (
+                  <div
+                    key={comp.id}
+                    onClick={() => {
+                      setActiveTab('map');
+                      onComplaintSelect(comp);
+                    }}
+                    className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all group"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-semibold text-primary uppercase tracking-wider truncate mr-2">{comp.category}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${(comp.status?.toUpperCase() === 'RESOLVIDA' || comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA') ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
+                        (comp.status?.toUpperCase() === 'EM_ANDAMENTO') ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400' :
+                          'bg-yellow-500/20 text-amber-700 dark:text-yellow-400'
+                        }`}>
+                        {(comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA'
+                          ? 'RESOLVIDA'
+                          : comp.status)?.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground/90 font-medium line-clamp-1">{comp.address}</p>
+                    <p className="text-xs text-foreground/70 dark:text-foreground/60 mt-1 line-clamp-2">{comp.description}</p>
+                  </div>
+                ))}
+
+                {/* Botão Ver mais (Carregar mais 10) */}
+                {citizenHasMore && (
+                  <div className="pt-2 pb-3 flex justify-center">
+                    <Button
+                      variant="outline"
+                      disabled={citizenLoadingMore}
+                      onClick={() => fetchCitizenComplaints(citizenPage + 1, true)}
+                      className="w-full py-4 rounded-xl border-foreground/10 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      {citizenLoadingMore ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-primary" />
+                          <span>Carregando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Ver mais</span>
+                          <span className="text-[10px] text-foreground/50 font-normal">
+                            ({citizenComplaints.length} de {citizenTotal})
+                          </span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {user.role !== 'cidadao' && !isCompactPanel && displayTab && (
+        <div className="flex-1 h-full w-full min-h-0">
+          {displayTab === 'os' && <ServiceOrdersPanel />}
+          {displayTab === 'complaints' && <ComplaintsAdminPanel onComplaintSelect={onComplaintSelect} />}
+          {displayTab === 'teams' && <TeamsPanel />}
+          {displayTab === 'managers' && <ManagersPanel />}
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div ref={sidebarContainerRef} className="pointer-events-none">
+
+      {/* Desktop Layout (Vertical Strip on the left + Sliding Panel) */}
+      <div className="hidden md:flex absolute top-4 left-4 bottom-4 z-50 items-start h-[calc(100vh-2rem)] pointer-events-none">
+        {/* Icon Strip (Far Left) */}
+        <div
+          className="bg-[#e1e4ea]/90 dark:bg-[#18181b]/90 border border-border/95 w-16 h-fit max-h-[calc(100vh-2rem)] overflow-y-auto no-scrollbar shrink-0 py-5 gap-3 rounded-3xl shadow-2xl flex flex-col items-center pointer-events-auto transition-all duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+        >
+          <Logo className="w-8 h-8 text-foreground shrink-0" />
+
+          <div className="w-7 h-px bg-foreground/10 shrink-0" />
+
+          <div className="w-full flex flex-col items-center gap-3">
+            <button
+              onClick={() => handleTabClick('map')}
+              className={`p-3 rounded-full transition-all ${activeTab === 'map' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
+              title="Mapa"
+            >
+              <Map size={20} />
+            </button>
+
+            {isCitizen ? (
               <button
-                onClick={() => handleTabClick('complaints')}
-                className={`p-3 rounded-full transition-all ${activeTab === 'complaints' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
-                title="Gestão de Denúncias"
+                onClick={() => handleTabClick('my-complaints')}
+                className={`p-3 rounded-full transition-all ${activeTab === 'my-complaints' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
+                title="Minhas Denúncias"
               >
                 <Grid size={20} />
               </button>
-              <button
-                onClick={() => handleTabClick('teams')}
-                className={`p-3 rounded-full transition-all ${activeTab === 'teams' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
-                title="Equipes de Campo"
-              >
-                <Users size={20} />
-              </button>
-              {user.role === 'root' && (
+            ) : (
+              <>
                 <button
-                  onClick={() => handleTabClick('managers')}
-                  className={`p-3 rounded-full transition-all ${activeTab === 'managers' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
-                  title="Gestores do Sistema"
+                  onClick={() => handleTabClick('os')}
+                  className={`p-3 rounded-full transition-all ${activeTab === 'os' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
+                  title="Ordens de Serviço (OSs)"
                 >
-                  <LayoutDashboard size={20} />
+                  <FileText size={20} />
                 </button>
-              )}
-            </>
-          )}
+                <button
+                  onClick={() => handleTabClick('complaints')}
+                  className={`p-3 rounded-full transition-all ${activeTab === 'complaints' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
+                  title="Gestão de Denúncias"
+                >
+                  <Grid size={20} />
+                </button>
+                <button
+                  onClick={() => handleTabClick('teams')}
+                  className={`p-3 rounded-full transition-all ${activeTab === 'teams' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
+                  title="Equipes de Campo"
+                >
+                  <Users size={20} />
+                </button>
+                {user.role === 'root' && (
+                  <button
+                    onClick={() => handleTabClick('managers')}
+                    className={`p-3 rounded-full transition-all ${activeTab === 'managers' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
+                    title="Gestores do Sistema"
+                  >
+                    <LayoutDashboard size={20} />
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="w-7 h-px bg-foreground/10 shrink-0" />
+
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => handleTabClick('settings')}
+              className={`p-3 rounded-full transition-all ${activeTab === 'settings' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
+              title="Ajustes"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
         </div>
 
-        <div className="w-7 h-px bg-foreground/10 shrink-0" />
-
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => handleTabClick('settings')}
-            className={`p-3 rounded-full transition-all ${activeTab === 'settings' ? 'bg-primary/10 text-primary scale-110' : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'}`}
-            title="Ajustes"
-          >
-            <Settings size={20} />
-          </button>
-        </div>
-      </div>
-
-      {/* Animated Content Panel */}
-      <div
-        aria-hidden={!isPanelOpen}
-        className={`bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 h-full rounded-3xl relative overflow-hidden transition-[width,margin,opacity,box-shadow] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${outerWidthClass} ${isPanelOpen
-          ? 'ml-3 opacity-100 shadow-2xl pointer-events-auto'
-          : 'ml-0 opacity-0 shadow-none !border-0 pointer-events-none'
-          }`}
-      >
+        {/* Animated Content Panel */}
         <div
-          className={`h-full flex flex-col p-6 ${targetWidthClass} transition-[transform,opacity] duration-[380ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isPanelOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
+          aria-hidden={!isPanelOpen}
+          className={`bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 h-full rounded-3xl relative overflow-hidden transition-[width,margin,opacity,box-shadow] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${outerWidthClass} ${isPanelOpen
+            ? 'ml-3 opacity-100 shadow-2xl pointer-events-auto'
+            : 'ml-0 opacity-0 shadow-none !border-0 pointer-events-none'
             }`}
         >
-          {displayTab === 'settings' && (
-            <div className="flex flex-col h-full min-h-0 animate-in fade-in slide-in-from-left-2 duration-300">
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-foreground">Ajustes</h2>
-                <p className="text-xs text-foreground/60 dark:text-foreground/50 mt-0.5">
-                  Informações do perfil e preferências
-                </p>
-              </div>
-
-              <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-5 pr-1">
-                {/* Informações do Perfil */}
-                <div className="space-y-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
-                    Perfil
-                  </span>
-                  <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-lg shrink-0">
-                        {userInitial}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-foreground text-base leading-tight truncate">
-                          {user.name || 'Usuário'}
-                        </h3>
-                        <span className="inline-flex items-center mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
-                          {roleLabel}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-foreground/10 space-y-3 text-xs">
-                      <div className="flex items-start gap-2.5">
-                        <User size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <span className="text-foreground/60 dark:text-foreground/50 block">Nome</span>
-                          <span className="text-foreground font-medium break-words">
-                            {user.name || 'Não informado'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-2.5">
-                        <Mail size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <span className="text-foreground/60 dark:text-foreground/50 block">E-mail</span>
-                          <span className="text-foreground font-medium break-all">
-                            {user.email || 'Não informado'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {user.phone && (
-                        <div className="flex items-start gap-2.5">
-                          <Phone size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <span className="text-foreground/60 dark:text-foreground/50 block">Telefone</span>
-                            <span className="text-foreground font-medium break-words">
-                              {user.phone}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-start gap-2.5">
-                        <Shield size={15} className="text-foreground/50 dark:text-foreground/40 mt-0.5 shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <span className="text-foreground/60 dark:text-foreground/50 block">Nível de Acesso</span>
-                          <span className="text-foreground font-medium">
-                            {roleLabel}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Aparência / Modo Escuro */}
-                <div className="space-y-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground/60 dark:text-foreground/50 px-1">
-                    Aparência
-                  </span>
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="w-full p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-foreground/20 transition-all flex items-center justify-between gap-3 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-black/10 dark:bg-white/10 flex items-center justify-center text-foreground shrink-0">
-                        {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-                      </div>
-                      <div className="text-left min-w-0">
-                        <span className="text-sm font-semibold text-foreground block">
-                          Modo Escuro
-                        </span>
-                        <span className="text-xs text-foreground/60 dark:text-foreground/50 block">
-                          {theme === 'dark' ? 'Ativado' : 'Desativado'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div
-                      role="switch"
-                      aria-checked={theme === 'dark'}
-                      className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 shrink-0 flex items-center ${theme === 'dark' ? 'bg-emerald-500' : 'bg-black/25 dark:bg-white/20'
-                        }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0'
-                          }`}
-                      />
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Botão de Sair */}
-              <div className="pt-4 mt-4 border-t border-foreground/10">
-                <button
-                  type="button"
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="w-full h-11 px-4 rounded-2xl bg-red-500/10 hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white border border-red-500/20 hover:border-red-600 font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <LogOut size={18} />
-                  <span>Sair</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {displayTab === 'my-complaints' && user.role === 'cidadao' && (
-            <div className="flex flex-col flex-1 overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">Minhas Denúncias</h2>
-                  {citizenTotal > 0 && (
-                    <p className="text-[11px] text-foreground/50">
-                      Exibindo {citizenComplaints.length} de {citizenTotal}
-                    </p>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setActiveTab('map');
-                    onAddComplaint?.();
-                  }}
-                  className="rounded-full shadow-md"
-                >
-                  <Plus size={16} className="mr-1" /> Nova
-                </Button>
-              </div>
-              <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 space-y-3 custom-scrollbar">
-                {citizenLoading && citizenComplaints.length === 0 ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-foreground/50 gap-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
-                    <span className="text-xs">Carregando denúncias...</span>
-                  </div>
-                ) : citizenComplaints.length === 0 ? (
-                  <p className="text-sm text-foreground/60 dark:text-foreground/50">Você ainda não fez nenhuma denúncia.</p>
-                ) : (
-                  <>
-                    {citizenComplaints.map(comp => (
-                      <div
-                        key={comp.id}
-                        onClick={() => {
-                          setActiveTab('map');
-                          onComplaintSelect(comp);
-                        }}
-                        className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-foreground/10 hover:border-primary/50 cursor-pointer transition-all group"
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="text-xs font-semibold text-primary uppercase tracking-wider truncate mr-2">{comp.category}</span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${(comp.status?.toUpperCase() === 'RESOLVIDA' || comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA') ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
-                            (comp.status?.toUpperCase() === 'EM_ANDAMENTO') ? 'bg-blue-500/20 text-blue-700 dark:text-blue-400' :
-                              'bg-yellow-500/20 text-amber-700 dark:text-yellow-400'
-                            }`}>
-                            {(comp.status?.toUpperCase() === 'RESOLVIDO' || comp.status?.toUpperCase() === 'CONCLUIDA'
-                              ? 'RESOLVIDA'
-                              : comp.status)?.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <p className="text-sm text-foreground/90 font-medium line-clamp-1">{comp.address}</p>
-                        <p className="text-xs text-foreground/70 dark:text-foreground/60 mt-1 line-clamp-2">{comp.description}</p>
-                      </div>
-                    ))}
-
-                    {/* Botão Ver mais (Carregar mais 10) */}
-                    {citizenHasMore && (
-                      <div className="pt-2 pb-3 flex justify-center">
-                        <Button
-                          variant="outline"
-                          disabled={citizenLoadingMore}
-                          onClick={() => fetchCitizenComplaints(citizenPage + 1, true)}
-                          className="w-full py-4 rounded-xl border-foreground/10 hover:border-primary/50 hover:bg-primary/5 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          {citizenLoadingMore ? (
-                            <>
-                              <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-primary" />
-                              <span>Carregando...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>Ver mais</span>
-                              <span className="text-[10px] text-foreground/50 font-normal">
-                                ({citizenComplaints.length} de {citizenTotal})
-                              </span>
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {user.role !== 'cidadao' && !isCompactPanel && displayTab && (
-            <div className="flex-1 h-full w-full min-h-0">
-              {displayTab === 'os' && <ServiceOrdersPanel />}
-              {displayTab === 'complaints' && <ComplaintsAdminPanel onComplaintSelect={onComplaintSelect} />}
-              {displayTab === 'teams' && <TeamsPanel />}
-              {displayTab === 'managers' && <ManagersPanel />}
-            </div>
-          )}
+          <div
+            className={`h-full flex flex-col p-6 ${targetWidthClass} transition-[transform,opacity] duration-[380ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isPanelOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
+              }`}
+          >
+            {renderPanelContent(false)}
+          </div>
         </div>
       </div>
+
+      {/* Mobile Floating Navigation Pill (Bottom Bar) */}
+      <div className="flex md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto items-center gap-1.5 p-1.5 rounded-full bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-2xl backdrop-blur-xl max-w-[calc(100vw-2rem)]">
+        <button
+          onClick={() => handleTabClick('map')}
+          className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+            activeTab === 'map'
+              ? 'bg-primary/15 text-primary scale-105 shadow-sm font-semibold'
+              : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+          }`}
+          title="Mapa"
+          aria-label="Mapa"
+        >
+          <Map size={20} />
+        </button>
+
+        {isCitizen ? (
+          <button
+            onClick={() => handleTabClick('my-complaints')}
+            className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+              activeTab === 'my-complaints'
+                ? 'bg-primary/15 text-primary scale-105 shadow-sm font-semibold'
+                : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+            }`}
+            title="Minhas Denúncias"
+            aria-label="Minhas Denúncias"
+          >
+            <Grid size={20} />
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => handleTabClick('os')}
+              className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+                activeTab === 'os'
+                  ? 'bg-primary/15 text-primary scale-105 shadow-sm font-semibold'
+                  : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+              }`}
+              title="Ordens de Serviço (OSs)"
+              aria-label="Ordens de Serviço"
+            >
+              <FileText size={20} />
+            </button>
+            <button
+              onClick={() => handleTabClick('complaints')}
+              className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+                activeTab === 'complaints'
+                  ? 'bg-primary/15 text-primary scale-105 shadow-sm font-semibold'
+                  : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+              }`}
+              title="Gestão de Denúncias"
+              aria-label="Gestão de Denúncias"
+            >
+              <Grid size={20} />
+            </button>
+            <button
+              onClick={() => handleTabClick('teams')}
+              className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+                activeTab === 'teams'
+                  ? 'bg-primary/15 text-primary scale-105 shadow-sm font-semibold'
+                  : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+              }`}
+              title="Equipes de Campo"
+              aria-label="Equipes de Campo"
+            >
+              <Users size={20} />
+            </button>
+            {user.role === 'root' && (
+              <button
+                onClick={() => handleTabClick('managers')}
+                className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+                  activeTab === 'managers'
+                    ? 'bg-primary/15 text-primary scale-105 shadow-sm font-semibold'
+                    : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+                }`}
+                title="Gestores do Sistema"
+                aria-label="Gestores do Sistema"
+              >
+                <LayoutDashboard size={20} />
+              </button>
+            )}
+          </>
+        )}
+
+        <div className="w-px h-5 bg-foreground/15 mx-0.5 shrink-0" />
+
+        <button
+          onClick={() => handleTabClick('settings')}
+          className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+            activeTab === 'settings'
+              ? 'bg-primary/15 text-primary scale-105 shadow-sm font-semibold'
+              : 'text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+          }`}
+          title="Ajustes"
+          aria-label="Ajustes"
+        >
+          <Settings size={20} />
+        </button>
+      </div>
+
+      {/* Mobile Floating Content Panel */}
+      {isPanelOpen && (
+        <div
+          className="md:hidden fixed inset-x-3 top-16 bottom-20 z-40 rounded-3xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 pointer-events-auto"
+        >
+          {/* Mobile Top Header Bar with Close Button */}
+          <div className="relative pt-3 px-4 pb-2.5 flex items-center justify-between border-b border-foreground/10 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-foreground/20 mx-auto absolute left-1/2 -translate-x-1/2 top-2" />
+            <span className="text-xs font-semibold text-foreground/60 uppercase tracking-wider">
+              {displayTab === 'settings'
+                ? 'Ajustes'
+                : displayTab === 'my-complaints'
+                ? 'Minhas Denúncias'
+                : displayTab === 'os'
+                ? 'Ordens de Serviço'
+                : displayTab === 'complaints'
+                ? 'Gestão de Denúncias'
+                : displayTab === 'teams'
+                ? 'Equipes de Campo'
+                : displayTab === 'managers'
+                ? 'Gestores'
+                : ''}
+            </span>
+            <button
+              onClick={() => setActiveTab('map')}
+              className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-foreground/50 hover:text-foreground transition-all cursor-pointer"
+              title="Voltar ao mapa"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="flex-1 min-h-0 flex flex-col p-4 overflow-hidden">
+            {renderPanelContent(true)}
+          </div>
+        </div>
+      )}
 
       {/* Modal de Confirmação de Logout */}
       <AlertDialog

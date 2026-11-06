@@ -29,8 +29,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const WhatsAppIcon = ({ size = 28 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+const WhatsAppIcon = ({ size = 28, className }: { size?: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.159.57 4.186 1.564 5.938l-1.564 5.714 5.86-1.537c1.705.932 3.666 1.465 5.753 1.465 6.627 0 12-5.373 12-12s-5.373-12-12-12z" />
   </svg>
 );
@@ -134,6 +134,7 @@ export function MapPage() {
   const [complaintToEdit, setComplaintToEdit] = useState<any | null>(null);
   const [osToEdit, setOsToEdit] = useState<any | null>(null);
   const [showOsFormModal, setShowOsFormModal] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [suppressHeatmapOnFocus, setSuppressHeatmapOnFocus] = useState(false);
   const maxAllowedZoom = user ? 19 : 17;
@@ -278,15 +279,20 @@ export function MapPage() {
       setOsToEdit(e.detail.os);
       setShowOsFormModal(true);
     };
+    const handleSidebarChange = (e: any) => {
+      setIsSidebarOpen(!!e.detail?.isOpen);
+    };
     
     window.addEventListener('request-os-location', handleRequestOsLoc);
     window.addEventListener('open-edit-complaint', handleOpenEdit);
     window.addEventListener('open-edit-os', handleOpenEditOs);
+    window.addEventListener('sidebar-state-change', handleSidebarChange);
     
     return () => {
       window.removeEventListener('request-os-location', handleRequestOsLoc);
       window.removeEventListener('open-edit-complaint', handleOpenEdit);
       window.removeEventListener('open-edit-os', handleOpenEditOs);
+      window.removeEventListener('sidebar-state-change', handleSidebarChange);
     };
   }, []);
 
@@ -391,18 +397,18 @@ export function MapPage() {
       )}
 
       {/* Top Header Filters */}
-      <div className={`absolute top-0 right-0 z-40 p-4 pointer-events-none flex justify-end items-start transition-all ${user ? 'left-24' : 'left-0 justify-between'}`}>
+      <div className={`absolute top-0 right-0 z-40 p-2 sm:p-4 pointer-events-none flex justify-end items-start transition-all ${user ? 'left-0 md:left-24' : 'left-0 justify-between'}`}>
         {!user && (
-          <div className="glass-panel glass-blur p-2 px-4 rounded-full pointer-events-auto flex items-center gap-3 ml-4 mt-2">
-            <Logo showName className="h-10 w-auto text-foreground" />
+          <div className="glass-panel glass-blur p-2 px-3 sm:px-4 rounded-full pointer-events-auto flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4 mt-2">
+            <Logo showName className="h-8 sm:h-10 w-auto text-foreground" />
           </div>
         )}
 
-        <div className="pointer-events-auto flex items-center gap-4 mt-2 mr-4">
-          <div className="flex items-center gap-2">
+        <div className="pointer-events-auto flex items-center gap-2 sm:gap-4 mt-1 sm:mt-2 mr-2 sm:mr-4 max-w-full overflow-x-auto no-scrollbar py-1">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {user && user.role !== 'cidadao' && (
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[150px] focus:ring-0">
+                <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-9 sm:h-10 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium w-[125px] sm:w-[150px] focus:ring-0">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
@@ -413,7 +419,7 @@ export function MapPage() {
             )}
 
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[195px] focus:ring-0">
+              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-9 sm:h-10 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium w-[135px] sm:w-[195px] focus:ring-0">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl max-h-80 custom-scrollbar bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
@@ -427,7 +433,7 @@ export function MapPage() {
             </Select>
 
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-10 px-4 rounded-full text-sm font-medium w-[155px] focus:ring-0">
+              <SelectTrigger className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/70 shadow-lg h-9 sm:h-10 px-3 sm:px-4 rounded-full text-xs sm:text-sm font-medium w-[120px] sm:w-[155px] focus:ring-0">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border-border/70">
@@ -440,18 +446,18 @@ export function MapPage() {
           </div>
 
           {!user && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button 
                 onClick={toggleTheme}
-                className="glass-panel glass-blur h-10 w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm"
+                className="glass-panel glass-blur h-9 w-9 sm:h-10 sm:w-10 rounded-full text-foreground/70 hover:text-foreground hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center justify-center pointer-events-auto shadow-sm"
               >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
               </button>
               <button 
                 onClick={() => navigate('/login')}
-                className="glass-panel glass-blur h-10 px-6 rounded-full text-sm font-medium hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-2 pointer-events-auto"
+                className="glass-panel glass-blur h-9 px-4 sm:h-10 sm:px-6 rounded-full text-xs sm:text-sm font-medium hover:bg-black/20 dark:hover:bg-white/20 transition-colors flex items-center gap-1.5 sm:gap-2 pointer-events-auto"
               >
-                <User size={16} /> Entrar
+                <User size={15} /> Entrar
               </button>
             </div>
           )}
@@ -459,14 +465,18 @@ export function MapPage() {
       </div>
 
       {/* Floating Action Button - For unlogged users and logged-in citizens */}
-      {(!user || user.role === 'cidadao') && !addMode && !osAddMode && !selectedComplaint && (
-        <div className="absolute bottom-10 right-10 z-40 flex items-center gap-3 pointer-events-none">
+      {(!user || user.role === 'cidadao') && !addMode && !osAddMode && !selectedComplaint && !isSidebarOpen && (
+        <div className={`absolute z-40 flex items-center gap-2 sm:gap-3 pointer-events-none transition-all ${
+          user 
+            ? 'bottom-20 right-4 sm:bottom-10 sm:right-10' 
+            : 'bottom-6 right-4 sm:bottom-10 sm:right-10'
+        }`}>
           {!user && (
-            <div className="flex items-center gap-2.5 pointer-events-auto animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="flex items-center gap-2 pointer-events-auto animate-in fade-in slide-in-from-right-4 duration-500">
               {/* Balão esverdeado com aviso de denúncia pelo WhatsApp sem login */}
-              <div className="relative bg-[#e8f8f0] dark:bg-[#0d2a1d] border border-[#25D366]/35 shadow-2xl py-2 px-3.5 rounded-2xl flex items-center text-xs font-bold text-[#075E54] dark:text-[#25D366]">
-                <span className="whitespace-nowrap">Denuncie no WhatsApp sem login!</span>
-                <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#e8f8f0] dark:bg-[#0d2a1d] border-t border-r border-[#25D366]/35 rotate-45" />
+              <div className="relative bg-[#e8f8f0] dark:bg-[#0d2a1d] border border-[#25D366]/35 shadow-2xl py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-2xl flex items-center text-[11px] sm:text-xs font-bold text-[#075E54] dark:text-[#25D366]">
+                <span className="whitespace-nowrap">Denuncie no WhatsApp!</span>
+                <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[#e8f8f0] dark:bg-[#0d2a1d] border-t border-r border-[#25D366]/35 rotate-45" />
               </div>
 
               {/* Botão de WhatsApp */}
@@ -475,9 +485,10 @@ export function MapPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Fazer denúncia pelo WhatsApp sem login"
-                className="h-16 w-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-[#25D366] text-white hover:bg-[#20ba59] cursor-pointer"
+                className="h-13 w-13 sm:h-16 sm:w-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 bg-[#25D366] text-white hover:bg-[#20ba59] cursor-pointer"
               >
-                <WhatsAppIcon size={32} />
+                <WhatsAppIcon size={26} className="sm:hidden" />
+                <WhatsAppIcon size={32} className="hidden sm:block" />
               </a>
             </div>
           )}
@@ -485,9 +496,10 @@ export function MapPage() {
           <button 
             onClick={handleAddClick}
             title="Nova Denúncia"
-            className="h-16 w-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 pointer-events-auto hover:scale-105 active:scale-95 bg-primary/90 text-primary-foreground hover:bg-primary"
+            className="h-13 w-13 sm:h-16 sm:w-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 pointer-events-auto hover:scale-105 active:scale-95 bg-primary/90 text-primary-foreground hover:bg-primary"
           >
-            <Plus size={32} />
+            <Plus size={26} className="sm:hidden" />
+            <Plus size={32} className="hidden sm:block" />
           </button>
         </div>
       )}
