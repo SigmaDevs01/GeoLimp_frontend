@@ -66,15 +66,11 @@ export function CookieConsentModal() {
         <div className="bg-[#e1e4ea]/95 dark:bg-[#18181b]/95 border border-border/80 shadow-2xl backdrop-blur-2xl rounded-3xl p-3.5 sm:p-4 flex flex-col gap-2.5 text-foreground">
           {/* Header & Icon */}
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                <Cookie size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm sm:text-base font-bold text-foreground">
-                  Uso de Cookies
-                </h3>
-              </div>
+            <div className="flex items-center gap-2">
+              <Cookie size={20} className="text-amber-500 shrink-0" />
+              <h3 className="text-sm sm:text-base font-bold text-foreground">
+                Uso de Cookies
+              </h3>
             </div>
 
             <button
@@ -89,8 +85,8 @@ export function CookieConsentModal() {
           </div>
 
           {/* Description */}
-          <p className="text-xs text-foreground/75 leading-relaxed">
-            Utilizamos cookies e armazenamento local para salvar suas preferências de visualização, manter sua sessão segura e melhorar sua navegação.
+          <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">
+            Você aceita o uso de cookies no GeoLimp?
           </p>
 
           {/* Link to Terms & Action Buttons */}

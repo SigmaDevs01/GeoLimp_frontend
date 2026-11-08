@@ -39,18 +39,13 @@ export function TermsModal({ isOpen, onClose, onAccept }: TermsModalProps) {
       <div className="bg-[#e1e4ea] dark:bg-[#18181b] border border-border/80 shadow-2xl rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden text-foreground animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-foreground/10 flex items-center justify-between shrink-0 bg-[#e1e4ea] dark:bg-[#18181b]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={22} />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-foreground">
-                Termos de Uso & Política de Privacidade
-              </h2>
-              <p className="text-xs text-foreground/60">
-                Conformidade com a LGPD (Lei nº 13.709/2018)
-              </p>
-            </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-foreground">
+              Termos de Uso & Política de Privacidade
+            </h2>
+            <p className="text-xs text-foreground/60">
+              Conformidade com a LGPD (Lei nº 13.709/2018)
+            </p>
           </div>
           <button
             type="button"
