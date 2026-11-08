@@ -35,10 +35,10 @@ export function TermsModal({ isOpen, onClose, onAccept }: TermsModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/80 animate-in fade-in duration-200">
       <div className="bg-[#e1e4ea] dark:bg-[#18181b] border border-border/80 shadow-2xl rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden text-foreground animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-foreground/10 flex items-center justify-between shrink-0 bg-background/40">
+        <div className="p-4 sm:p-5 border-b border-foreground/10 flex items-center justify-between shrink-0 bg-[#e1e4ea] dark:bg-[#18181b]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <ShieldCheck size={22} />
@@ -64,7 +64,7 @@ export function TermsModal({ isOpen, onClose, onAccept }: TermsModalProps) {
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-xs sm:text-sm text-foreground/80 leading-relaxed">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-5 text-xs sm:text-sm text-foreground/80 leading-relaxed">
           <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs">
             💡 <b>Transparência e Compromisso Público:</b> O GeoLimp respeita sua privacidade e protege seus dados em total consonância com os princípios da Lei Geral de Proteção de Dados Pessoais.
           </div>
@@ -169,7 +169,7 @@ export function TermsModal({ isOpen, onClose, onAccept }: TermsModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-background/40 shrink-0">
+        <div className="p-4 sm:p-5 border-t border-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#e1e4ea] dark:bg-[#18181b] shrink-0">
           <button
             type="button"
             onClick={handleOpenFullPage}

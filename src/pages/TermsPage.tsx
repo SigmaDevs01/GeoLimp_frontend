@@ -23,9 +23,9 @@ export function TermsPage() {
   const { theme, toggleTheme } = useThemeStore();
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
+    <div className="h-full w-full overflow-y-auto bg-background text-foreground flex flex-col selection:bg-primary/20">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-foreground/10 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-foreground/10 px-4 sm:px-8 py-3.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"

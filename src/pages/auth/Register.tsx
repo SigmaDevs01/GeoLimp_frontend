@@ -44,43 +44,44 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="h-full w-full overflow-y-auto bg-background text-foreground relative selection:bg-primary/20">
       {/* Background Decorative Pattern */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
+      <div className="fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pointer-events-none" />
 
-      <div className="absolute top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50">
         <button
           type="button"
           onClick={() => navigate('/')}
           title="Voltar para o Mapa"
           aria-label="Voltar para o Mapa"
-          className="p-3 rounded-full bg-background/50 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm cursor-pointer"
+          className="p-3 rounded-full bg-background/70 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm cursor-pointer"
         >
           <X size={20} />
         </button>
       </div>
 
-      <div className="absolute bottom-4 left-4 z-50">
+      <div className="fixed bottom-4 left-4 z-50">
         <button
           type="button"
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
           aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
-          className="p-3 rounded-full bg-background/50 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm cursor-pointer"
+          className="p-3 rounded-full bg-background/70 backdrop-blur-sm border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all shadow-sm cursor-pointer"
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
       </div>
 
-      <div className="mb-8 z-10 flex flex-col items-center gap-2">
-        <Logo showName className="w-auto h-20 text-foreground" />
-      </div>
-      
-      <div className="glass-panel w-full max-w-md p-8 rounded-2xl z-10 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="text-center space-y-2 mb-8">
-          <h2 className="text-3xl font-bold text-foreground">Cadastro Cidadão</h2>
-          <p className="text-foreground/70 text-sm">Crie sua conta para participar da zeladoria da cidade</p>
+      <div className="min-h-full w-full flex flex-col items-center justify-center p-4 sm:p-6 py-10 z-10 relative">
+        <div className="mb-6 flex flex-col items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+          <Logo showName className="w-auto h-16 sm:h-20 text-foreground" />
         </div>
+        
+        <div className="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="text-center space-y-2 mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Cadastro Cidadão</h2>
+            <p className="text-foreground/70 text-xs sm:text-sm">Crie sua conta para participar da zeladoria da cidade</p>
+          </div>
         
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-1">
@@ -198,5 +199,6 @@ export function Register() {
         </form>
       </div>
     </div>
-  );
+  </div>
+);
 }
