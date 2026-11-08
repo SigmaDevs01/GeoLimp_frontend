@@ -179,6 +179,14 @@ export function Register() {
             Cadastrar
           </Button>
 
+          <p className="text-[11px] text-foreground/60 text-center mt-2 px-2">
+            Ao se cadastrar, você concorda com nossos{' '}
+            <Link to="/termos" className="text-primary hover:underline font-medium">
+              Termos de Uso e Privacidade
+            </Link>{' '}
+            (LGPD).
+          </p>
+
           <div className="text-center mt-6">
             <p className="text-sm text-foreground/70">
               Já tem uma conta?{' '}

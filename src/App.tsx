@@ -3,8 +3,10 @@ import { MapPage } from './pages/MapPage';
 import { Dashboard } from './pages/admin/Dashboard';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
+import { TermsPage } from './pages/TermsPage';
 import { ProtectedRoute } from './shared/components/ProtectedRoute';
 import { GlobalModal } from './shared/components/GlobalModal';
+import { CookieConsentModal } from './components/LGPD/CookieConsentModal';
 
 function App() {
   return (
@@ -13,6 +15,8 @@ function App() {
         <Route path="/" element={<MapPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/termos" element={<TermsPage />} />
+        <Route path="/termos-de-uso" element={<TermsPage />} />
         
         {/* Rotas Protegidas */}
         <Route element={<ProtectedRoute />}>
@@ -21,6 +25,7 @@ function App() {
         </Route>
       </Routes>
       <GlobalModal />
+      <CookieConsentModal />
     </>
   );
 }

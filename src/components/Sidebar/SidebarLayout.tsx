@@ -18,11 +18,13 @@ import {
   Shield,
   Trash2,
   X,
+  Cookie,
 } from 'lucide-react';
 import { Logo } from '@/shared/components/Logo';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { useSocketStore } from '@/store/useSocketStore';
+import { TermsModal } from '@/components/LGPD/TermsModal';
 import { Input } from '@/components/ui/input';
 import { formatPhoneDisplay, maskPhone, normalizePhoneForApi } from '@/shared/utils/phone.utils';
 import {
@@ -61,6 +63,7 @@ export function SidebarLayout({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
 
   // Estados para edição rápida de telefone em Ajustes
@@ -463,6 +466,35 @@ export function SidebarLayout({
                     }`}
                   />
                 </div>
+              </button>
+            </div>
+
+            {/* Termos de Uso e Privacidade (LGPD) */}
+            <div className="pt-1 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(true)}
+                className="w-full h-9 sm:h-11 px-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-foreground/80 hover:text-foreground border border-foreground/10 font-semibold text-xs sm:text-sm transition-all flex items-center justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <FileText size={16} className="text-primary" />
+                  <span>Termos & Privacidade</span>
+                </div>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold">
+                  LGPD
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('geolimp:open-cookie-consent'))}
+                className="w-full h-9 sm:h-11 px-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-foreground/80 hover:text-foreground border border-foreground/10 font-semibold text-xs sm:text-sm transition-all flex items-center justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Cookie size={16} className="text-amber-500" />
+                  <span>Preferências de Cookies</span>
+                </div>
+                <span className="text-[10px] text-foreground/50">Gerenciar</span>
               </button>
             </div>
 
@@ -915,6 +947,12 @@ export function SidebarLayout({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Termos de Uso e Política de Privacidade (LGPD) */}
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
 
     </div>
   );
